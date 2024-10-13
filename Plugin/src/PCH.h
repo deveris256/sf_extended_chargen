@@ -115,9 +115,9 @@ using namespace REL::literals;
 // Plugin
 #include "Plugin.h"
 
-// DKUtil
-#include "DKUtil/Hook.hpp"
-#include "DKUtil/Logger.hpp"
+#define MOD_NAME "Extended Chargen"
+#define AUTHOR_NAME "Deveris256"
+#define GAME_VERSION BC_MAKE_VERSION(1, 12, 36)
 
 // SFSEPlugin_Version
 DLLEXPORT constinit auto SFSEPlugin_Version = []() noexcept {
@@ -126,15 +126,6 @@ DLLEXPORT constinit auto SFSEPlugin_Version = []() noexcept {
 	data.PluginVersion(Plugin::Version);
 	data.PluginName(Plugin::NAME);
 	data.AuthorName(Plugin::AUTHOR);
-
-	// REL::ID usage instead of REL::Offset
-	//data.UsesAddressLibrary(true);
-	// Version independent signature scanning
-	//data.UsesSigScanning(true);
-
-	// Uses version specific structure definitions
-	//data.IsLayoutDependent(true);
-	//data.HasNoStructUse(true);
 
 	data.CompatibleVersions({ SFSE::RUNTIME_LATEST });
 

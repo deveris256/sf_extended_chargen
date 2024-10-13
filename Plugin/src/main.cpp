@@ -3,8 +3,6 @@
  * This plugin template links against CommonLibSF
  */
 
-#include "DKUtil/Hook.hpp"
-
 namespace
 {
 	void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
@@ -20,11 +18,6 @@ namespace
 	}
 }
 
-/**
-// for preload plugins
-void SFSEPlugin_Preload(SFSE::LoadInterface* a_sfse);
-/**/
-
 DLLEXPORT bool SFSEAPI SFSEPlugin_Load(const SFSE::LoadInterface* a_sfse)
 {
 #ifndef NDEBUG
@@ -32,13 +25,6 @@ DLLEXPORT bool SFSEAPI SFSEPlugin_Load(const SFSE::LoadInterface* a_sfse)
 #endif
 
 	SFSE::Init(a_sfse, false);
-	DKUtil::Logger::Init(Plugin::NAME, std::to_string(Plugin::Version));
-	INFO("{} v{} loaded", Plugin::NAME, Plugin::Version);
-
-	// do stuff
-	// this allocates 1024 bytes for development builds, you can
-	// adjust the value accordingly with the log result for release builds
-	//SFSE::AllocTrampoline(1 << 10);
 
 	SFSE::GetMessagingInterface()->RegisterListener(MessageCallback);
 

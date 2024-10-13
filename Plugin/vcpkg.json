@@ -1,14 +1,14 @@
 {
-    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "name": "test",
-    "version-string": "1.0.0",
-    "description": "sfse plugin for starfield",
-    "homepage": "https://github.com/deveris256/test",
-    "dependencies": [
-        "spdlog",
-        "nlohmann-json",
-        "simpleini",
-        "tomlplusplus",
-        "xbyak"
-    ]
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "extendedchargen",
+  "version-string": "0.0.1",
+  "description": "Extended Chargen",
+  "homepage": "https://github.com/deveris256/sf_extended_chargen",
+  "dependencies": [
+    "spdlog",
+    "nlohmann-json",
+    "simpleini",
+    "tomlplusplus",
+    "xbyak"
+  ]
 }
