@@ -1,6 +1,9 @@
 [Bb]uild/
 .vs/
 .vscode/
-*.zip
 *.timestamp
+
 deploy-*.ps1
+/Plugin/dist/*
+!/Plugin/dist/
+!/Plugin/dist/*.zip

@@ -18,21 +18,21 @@
         "action": "copy_if",
         "params": [
             "{dist}\\*.ini",
-            "{dist}\\Data\\SFSE\\Plugins\\"
+            "{dist}\\Data\\SFSE\\Plugins\\ExtendedChargen\\"
         ]
     },
     {
         "action": "copy_if",
         "params": [
             "{dist}\\*.toml",
-            "{dist}\\Data\\SFSE\\Plugins\\"
+            "{dist}\\Data\\SFSE\\Plugins\\ExtendedChargen\\"
         ]
     },
     {
         "action": "copy_if",
         "params": [
             "{dist}\\*.json",
-            "{dist}\\Data\\SFSE\\Plugins\\"
+            "{dist}\\Data\\SFSE\\Plugins\\ExtendedChargen\\"
         ]
     },
     {
