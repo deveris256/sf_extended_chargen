@@ -9,6 +9,22 @@
 #include <nlohmann/json.hpp>
 #include "NiAVObject.h"
 
+#include "LogWrapper.h"
+#include "Sniffer.h"
+
+// SFSEPlugin_Version
+DLLEXPORT constinit auto SFSEPlugin_Version = []() noexcept {
+	SFSE::PluginVersionData data{};
+
+	data.PluginVersion(Plugin::Version);
+	data.PluginName(Plugin::NAME);
+	data.AuthorName(Plugin::AUTHOR);
+
+	data.CompatibleVersions({ SFSE::RUNTIME_LATEST });
+
+	return data;
+}();
+
 static std::string getPluginFolder()
 {
 	char    path[MAX_PATH];
@@ -512,9 +528,12 @@ DLLEXPORT bool SFSEAPI SFSEPlugin_Load(const SFSE::LoadInterface* a_sfse)
 //#ifndef NDEBUG
 //	MessageBoxA(NULL, "EXTENDED CHARGEN LOADED. SORRY FOR THE INTERRUPTION...", Plugin::NAME.data(), NULL);
 //#endif
-
+	//logger::info("Extended Chargen loaded.");
+	
 	SFSE::Init(a_sfse, false);
 	SFSE::GetMessagingInterface()->RegisterListener(MessageCallback);
+
+	//sniffer::RegisterForAllEvents();
 
 	return true;
 }

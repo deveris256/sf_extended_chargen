@@ -103,6 +103,7 @@ if (MSVC)
 			/Zc:wchar_t
 			/wd4200 # nonstandard extension used : zero-sized array in struct/union
 			/FI${CMAKE_CURRENT_SOURCE_DIR}/src/PCH.h
+			/Yu${CMAKE_CURRENT_SOURCE_DIR}/src/PCH.h
 	)
 endif()
 

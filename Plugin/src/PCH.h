@@ -119,15 +119,3 @@ using namespace REL::literals;
 #define AUTHOR_NAME "Deveris256"
 #define GAME_VERSION BC_MAKE_VERSION(1, 12, 36)
 
-// SFSEPlugin_Version
-DLLEXPORT constinit auto SFSEPlugin_Version = []() noexcept {
-	SFSE::PluginVersionData data{};
-
-	data.PluginVersion(Plugin::Version);
-	data.PluginName(Plugin::NAME);
-	data.AuthorName(Plugin::AUTHOR);
-
-	data.CompatibleVersions({ SFSE::RUNTIME_LATEST });
-
-	return data;
-}();
