@@ -4,10 +4,10 @@
  */
 
 #define BETTERAPI_IMPLEMENTATION
-#include "betterapi.h"
 #include "CCF_API.h"
-#include <nlohmann/json.hpp>
 #include "NiAVObject.h"
+#include "betterapi.h"
+#include <nlohmann/json.hpp>
 
 #include "LogWrapper.h"
 #include "Sniffer.h"
@@ -39,15 +39,15 @@ static std::string getPluginFolder()
 
 using json = nlohmann::json;
 
-static const BetterAPI*             API = NULL;
-static const struct simple_draw_t*  UI = NULL;
-static LogBufferHandle              LogHandle = 0;
-static auto                         lastExecutionTime = std::chrono::steady_clock::now();
+static const BetterAPI*            API = NULL;
+static const struct simple_draw_t* UI = NULL;
+static LogBufferHandle             LogHandle = 0;
+static auto                        lastExecutionTime = std::chrono::steady_clock::now();
 
 static bool appearanceChanged = false;
 
-static std::string pluginFolder = getPluginFolder();
-static std::string iniFilePath = pluginFolder + "\\ExtendedChargen.ini";
+static std::string       pluginFolder = getPluginFolder();
+static std::string       iniFilePath = pluginFolder + "\\ExtendedChargen.ini";
 static std::atomic<bool> hasLoaded = false;
 
 void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
@@ -303,7 +303,7 @@ namespace ExtendedChargen
 		//int max = 16;
 
 		// Setting actor
-		RE::Actor* actor = GetSelActorOrPlayer();
+		RE::Actor*  actor = GetSelActorOrPlayer();
 		RE::TESNPC* actorNpc = actor->GetNPC();
 
 		// UI
@@ -324,25 +324,25 @@ namespace ExtendedChargen
 		//			actor->UpdateChargenAppearance();
 		//		});
 		//}
-	
+
 		// Tabs
 		void (*TabBarPtr)(const char* const* const, uint32_t, int*) = UI->TabBar;
 		const char* tabHeaders[] = { "AVM", "Headparts", "Sliders", "Race", "Performance morphs" };
-		
-		uint32_t    tabCount = 5;
-		int         activeTab = 1;
-	
+
+		uint32_t tabCount = 5;
+		int      activeTab = 1;
+
 		TabBarPtr(tabHeaders, tabCount, &activeTab);
-	
+
 		if (activeTab == 0) {  // AVM tab
 			auto AVMTints = actorNpc->tintAVMData;
 			//std::list<RE::AVMData> avmlist;
-	
+
 			for (auto& avmd : AVMTints) {
 				//avmlist.push_front(avmd);
-	
+
 				std::string typeString = getStringTypeFromAVM(avmd.type).c_str();
-	
+
 				UI->Text(avmd.category.c_str());
 				UI->Text(avmd.unk10.name.c_str());
 				UI->Text(avmd.unk10.texturePath.c_str());
@@ -353,7 +353,7 @@ namespace ExtendedChargen
 		{
 			auto Headparts = actorNpc->headParts;
 			auto guard = Headparts.lock();
-	
+
 			for (RE::BGSHeadPart* part : *guard) {
 				UI->Text(part->formEditorID.c_str());
 				UI->Text(part->colorMapping.c_str());
@@ -398,7 +398,7 @@ namespace ExtendedChargen
 						actor->UpdateChargenAppearance();
 					});
 			}
-	
+
 			auto ShapeBlends = actorNpc->shapeBlendData;
 
 			if (ShapeBlends != nullptr) {
@@ -418,19 +418,19 @@ namespace ExtendedChargen
 					}
 				}
 			}
-	
+
 			auto Morphs1 = actorNpc->unk3E0;
-	
+
 			UI->Text("Morphs1");
 			if (Morphs1 != nullptr) {
 				for (const auto& outerPair : *Morphs1) {
 					std::uint32_t                               outerKey = outerPair.key;
 					RE::BSTHashMap<RE::BSFixedStringCS, float>* innerMap = outerPair.value;
-	
+
 					if (innerMap) {
 						for (const auto& innerPair : *innerMap) {
 							const RE::BSFixedStringCS& innerKey = innerPair.key;
-	
+
 							if (UI->SliderFloat(
 									innerKey.c_str(),
 									(float*)&innerPair.value,
@@ -450,14 +450,14 @@ namespace ExtendedChargen
 			} else {
 				UI->Text("Morphs1 is null");
 			}
-	
+
 			// Facebones. TODO: Read all from file
 			UI->Text("Facebones");
 			auto Morphs2 = actorNpc->unk3D8;
 			if (Morphs2 != nullptr) {
 				for (const auto& pair : *Morphs2) {
 					std::uint32_t key = pair.key;
-	
+
 					if (UI->SliderFloat(
 							std::to_string(key).c_str(),
 							(float*)&pair.value,
@@ -525,11 +525,11 @@ static int OnBetterConsoleLoad(const struct better_api_t* BetterAPI)
 
 DLLEXPORT bool SFSEAPI SFSEPlugin_Load(const SFSE::LoadInterface* a_sfse)
 {
-//#ifndef NDEBUG
-//	MessageBoxA(NULL, "EXTENDED CHARGEN LOADED. SORRY FOR THE INTERRUPTION...", Plugin::NAME.data(), NULL);
-//#endif
+	//#ifndef NDEBUG
+	//	MessageBoxA(NULL, "EXTENDED CHARGEN LOADED. SORRY FOR THE INTERRUPTION...", Plugin::NAME.data(), NULL);
+	//#endif
 	//logger::info("Extended Chargen loaded.");
-	
+
 	SFSE::Init(a_sfse, false);
 	SFSE::GetMessagingInterface()->RegisterListener(MessageCallback);
 

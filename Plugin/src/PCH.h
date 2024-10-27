@@ -118,4 +118,3 @@ using namespace REL::literals;
 #define MOD_NAME "Extended Chargen"
 #define AUTHOR_NAME "Deveris256"
 #define GAME_VERSION BC_MAKE_VERSION(1, 12, 36)
-

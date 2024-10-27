@@ -1,16 +1,17 @@
 #pragma once
-#include <string>
-#include <string_view>
 #include <chrono>
 #include <ctime>
-#include <iomanip>
-#include <sstream>
-#include <iostream>
 #include <format>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <string_view>
 
 namespace utils
 {
-	inline constexpr std::string_view GetPluginName() {
+	inline constexpr std::string_view GetPluginName()
+	{
 		return Plugin::NAME;
 	};
 

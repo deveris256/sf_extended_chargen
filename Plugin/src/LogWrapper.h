@@ -1,11 +1,11 @@
 #pragma once
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/basic_file_sink.h"
 #include "Utils.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/spdlog.h"
 
 namespace logger
 {
-	enum class LogLevel: uint8_t
+	enum class LogLevel : uint8_t
 	{
 		kNone = 0,
 		kINFO,
@@ -32,17 +32,20 @@ namespace logger
 	}
 
 	template <class... Args>
-	void info(const std::format_string<Args...> a_fmt, Args&&... a_args) {
+	void info(const std::format_string<Args...> a_fmt, Args&&... a_args)
+	{
 		log<LogLevel::kINFO>(a_fmt, std::forward<Args>(a_args)...);
 	}
 
 	template <class... Args>
-	void warn(const std::format_string<Args...> a_fmt, Args&&... a_args) {
+	void warn(const std::format_string<Args...> a_fmt, Args&&... a_args)
+	{
 		log<LogLevel::kWARN>(a_fmt, std::forward<Args>(a_args)...);
 	}
 
 	template <class... Args>
-	void error(const std::format_string<Args...> a_fmt, Args&&... a_args) {
+	void error(const std::format_string<Args...> a_fmt, Args&&... a_args)
+	{
 		log<LogLevel::kERROR>(a_fmt, std::forward<Args>(a_args)...);
 	}
 
@@ -50,7 +53,7 @@ namespace logger
 	template <LogLevel _Log_LVL, class... Args>
 	void c_log(const std::format_string<Args...> a_fmt, Args&&... a_args)
 	{
-		auto time_str = utils::GetCurrentTimeString();
+		auto        time_str = utils::GetCurrentTimeString();
 		std::string log_str;
 
 		if constexpr (_Log_LVL == LogLevel::kINFO)
@@ -66,22 +69,26 @@ namespace logger
 	}
 
 	template <class... Args>
-	void c_info(const std::format_string<Args...> a_fmt, Args&&... a_args) {
+	void c_info(const std::format_string<Args...> a_fmt, Args&&... a_args)
+	{
 		c_log<LogLevel::kINFO>(a_fmt, std::forward<Args>(a_args)...);
 	}
 
 	template <class... Args>
-	void c_warn(const std::format_string<Args...> a_fmt, Args&&... a_args) {
+	void c_warn(const std::format_string<Args...> a_fmt, Args&&... a_args)
+	{
 		c_log<LogLevel::kWARN>(a_fmt, std::forward<Args>(a_args)...);
 	}
 
 	template <class... Args>
-	void c_error(const std::format_string<Args...> a_fmt, Args&&... a_args) {
+	void c_error(const std::format_string<Args...> a_fmt, Args&&... a_args)
+	{
 		c_log<LogLevel::kERROR>(a_fmt, std::forward<Args>(a_args)...);
 	}
 
 	template <class... Args>
-	void c_message(const std::format_string<Args...> a_fmt, Args&&... a_args) {
+	void c_message(const std::format_string<Args...> a_fmt, Args&&... a_args)
+	{
 		c_log<LogLevel::kNone>(a_fmt, std::forward<Args>(a_args)...);
 	}
 

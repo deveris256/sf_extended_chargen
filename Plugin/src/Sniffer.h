@@ -1,6 +1,6 @@
 #pragma once
-#include "RE/E/Events.h"
 #include "LogWrapper.h"
+#include "RE/E/Events.h"
 
 namespace sniffer
 {
@@ -20,8 +20,7 @@ namespace sniffer
 		{
 			if (a_event.equipped) {
 				logger::c_info("Item actor_who {}({:X}), baseObject {:X}, origRef {:X} equipped", a_event.actor->GetDisplayFullName(), a_event.actor->GetFormID(), a_event.baseObject, a_event.origRef);
-			}
-			else {
+			} else {
 				logger::c_info("Item actor_who {}({:X}), baseObject {:X}, origRef {:X} unequipped", a_event.actor->GetDisplayFullName(), a_event.actor->GetFormID(), a_event.baseObject, a_event.origRef);
 			}
 			return EventResult::kContinue;
@@ -35,9 +34,9 @@ namespace sniffer
 
 	class ActorItemEquippedEventHandler : public RE::BSTEventSink<RE::ActorItemEquipped::Event>
 	{
-	/// <summary>
-	/// Seemingly accepts weapons/armor/apparels.
-	/// </summary>
+		/// <summary>
+		/// Seemingly accepts weapons/armor/apparels.
+		/// </summary>
 	public:
 		using EventResult = RE::BSEventNotifyControl;
 		using Event = RE::ActorItemEquipped::Event;

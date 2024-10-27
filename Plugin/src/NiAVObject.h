@@ -8,28 +8,28 @@ namespace RE
 
 	struct BSAnimationUpdateData
 	{
-		NiPoint3A rootLocation1;
-		NiPoint3A rootAngle1;
-		NiPoint3A rootLocation2;
-		NiPoint3A rootAngle2;
-		float unk01;
-		float unk02;
+		NiPoint3A                           rootLocation1;
+		NiPoint3A                           rootAngle1;
+		NiPoint3A                           rootLocation2;
+		NiPoint3A                           rootAngle2;
+		float                               unk01;
+		float                               unk02;
 		IPostAnimationChannelUpdateFunctor* postUpdateFunctor;
-		float unk05;
-		float unk06;
-		float unk07;
-		float unk08;
-		float timeDelta;
-		float unk09;
-		uint16_t unk11;
-		bool forceUpdate;
+		float                               unk05;
+		float                               unk06;
+		float                               unk07;
+		float                               unk08;
+		float                               timeDelta;
+		float                               unk09;
+		uint16_t                            unk11;
+		bool                                forceUpdate;
 
 		//It appears this is also set to true when an actor is very far away & switches out to a lower-resolution LOD.
 		//When the actor is even further away, the animation update routine stops getting called at all, likely due to ShouldUpdateAnimation() returning false.
-		bool modelCulled;
-		bool unk13;
-		bool unkFlag;
-		bool unk15;
+		bool  modelCulled;
+		bool  unk13;
+		bool  unkFlag;
+		bool  unk15;
 		float unk16;
 	};
 	static_assert(offsetof(BSAnimationUpdateData, timeDelta) == 0x60);
@@ -110,23 +110,24 @@ namespace RE
 
 	static constexpr size_t tst123{ offsetof(NiAVObject, NiAVObject::world) };
 
-	class NiNode : public NiAVObject {
+	class NiNode : public NiAVObject
+	{
 	public:
 		virtual ~NiNode() = default;
 		virtual void* AttachChild(NiAVObject* child, bool firstAvailable);
 		virtual void* InsertChildAt(uint32_t idx, NiAVObject* child);
 		virtual void* DetachChild(NiAVObject* child);
-		virtual void* DetachChildOut(NiAVObject* child, NiAVObject** outObj); //RE::NiPointer<NiAVObject>&
+		virtual void* DetachChildOut(NiAVObject* child, NiAVObject** outObj);  //RE::NiPointer<NiAVObject>&
 		virtual void* DetachChildAt(uint32_t idx);
-		virtual void* DetachChildAtOut(uint32_t idx, NiAVObject** outObj); //RE::NiPointer<NiAVObject>&
+		virtual void* DetachChildAtOut(uint32_t idx, NiAVObject** outObj);  //RE::NiPointer<NiAVObject>&
 		virtual void* SetAt(uint32_t idx, NiAVObject* child);
-		virtual void* SetAtOut(uint32_t idx, NiAVObject* child, NiAVObject** outObj); //RE::NiPointer<NiAVObject>&
+		virtual void* SetAtOut(uint32_t idx, NiAVObject* child, NiAVObject** outObj);  //RE::NiPointer<NiAVObject>&
 		virtual void* Unk92();
 		virtual void* Unk93();
 		virtual void* Unk94();
 
-		NiTArray<NiNode*> children; //NiTObjectArray<NiPointer<NiAVObject>> //130
-		void* unk148;
+		NiTArray<NiNode*> children;  //NiTObjectArray<NiPointer<NiAVObject>> //130
+		void*             unk148;
 	};
 
 	class BGSFadeNode : public NiNode
@@ -136,18 +137,18 @@ namespace RE
 
 		struct UnkEntry
 		{
-			std::byte    unk00[32];
-			NiBound      worldBound;
-			NiAVObject*  node;
-			void*        unk01;
+			std::byte   unk00[32];
+			NiBound     worldBound;
+			NiAVObject* node;
+			void*       unk01;
 		};
 
-		void*         unk150;
-		void*         unk158;
-		void*         unk160;
-		void*         unk168;
+		void*             unk150;
+		void*             unk158;
+		void*             unk160;
+		void*             unk168;
 		BSArray<UnkEntry> geometries;
-		BGSModelNode* bgsModelNode;
+		BGSModelNode*     bgsModelNode;
 	};
 
 	class BSGeometry : public NiAVObject
