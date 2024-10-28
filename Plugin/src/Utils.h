@@ -24,7 +24,8 @@ namespace utils
 
 	std::string GetCurrentTimeString(std::string fmt = "%d.%m.%Y %H:%M:%S");
 
-	inline std::string make_str(RE::TESForm* a_form) {
+	inline std::string make_str(RE::TESForm* a_form)
+	{
 		return std::format("{}({:X})", a_form->GetFormEditorID(), a_form->GetFormID());
 	}
 }

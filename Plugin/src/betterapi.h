@@ -696,12 +696,12 @@ struct hook_api_t
 	// Hook old_func so it is redirected to new_func
 	// returns a function pointer to call old_func after the hook
 	// uses the minhook library internally
-	FUNC_PTR (*HookFunction)
+	FUNC_PTR(*HookFunction)
 	(FUNC_PTR old_func, FUNC_PTR new_func);
 
 	// Hook a vtable function for all instances of a class
 	// returns the old function pointer
-	FUNC_PTR (*HookVirtualTable)
+	FUNC_PTR(*HookVirtualTable)
 	(void* class_instance, unsigned method_index, FUNC_PTR new_func);
 
 	// Relocate an offset from imagebase
@@ -714,11 +714,11 @@ struct hook_api_t
 	bool (*WriteMemory)(void* dest, const void* src, unsigned size);
 
 	// get the address of a function through starfield's import address table
-	FUNC_PTR (*GetProcAddressFromIAT)
+	FUNC_PTR(*GetProcAddressFromIAT)
 	(const char* dll_name, const char* func_name);
 
 	// hook a function in the Import Address Table of starfield
-	FUNC_PTR (*HookFunctionIAT)
+	FUNC_PTR(*HookFunctionIAT)
 	(const char* dll_name, const char* func_name, const FUNC_PTR new_function);
 
 	// !EXPERIMENTAL API! AOB scan the exe memory and return the first match
@@ -1180,7 +1180,7 @@ struct service_locator_t
 {
 	uint32_t version;
 	uint32_t interface_count;
-	FUNC_PTR (*Find)
+	FUNC_PTR(*Find)
 	(const char* mod_name, const char* func_name);
 	bool (*Info)(uint32_t index, const char** mod_name, const char** func_name, FUNC_PTR* func_ptr);
 	bool (*Register)(const char* mod_name, const char* func_name, FUNC_PTR func_ptr);

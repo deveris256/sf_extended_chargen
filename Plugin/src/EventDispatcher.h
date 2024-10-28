@@ -1,6 +1,6 @@
 #pragma once
-#include "Utils.h"
 #include "LogWrapper.h"
+#include "Utils.h"
 
 namespace events
 {
@@ -19,9 +19,9 @@ namespace events
 			equipped(a_equipped)
 		{}
 
-		RE::Actor* actor;
+		RE::Actor*         actor;
 		RE::TESObjectARMO* armorOrApparel;
-		bool equipped;
+		bool               equipped;
 	};
 
 	class ActorLoadedEvent : public EventBase
@@ -33,10 +33,11 @@ namespace events
 		{}
 
 		RE::Actor* actor;
-		bool loaded;
+		bool       loaded;
 	};
 
-	template <class _Event_T> requires std::derived_from<_Event_T, EventBase>
+	template <class _Event_T>
+		requires std::derived_from<_Event_T, EventBase>
 	class EventDispatcher
 	{
 	public:
@@ -63,17 +64,15 @@ namespace events
 			std::lock_guard lock(mtx);
 			listeners.erase(
 				std::remove_if(
-					listeners.begin(), 
+					listeners.begin(),
 					listeners.end(),
 					[a_listener](const std::weak_ptr<Listener>& weak_listener) {
 						if (auto listener = weak_listener.lock()) {
 							return listener.get() == a_listener;
 						}
 						return false;
-					}
-				),
-				listeners.end()
-			);
+					}),
+				listeners.end());
 		}
 
 		void Dispatch(_Event_T a_event)

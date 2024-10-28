@@ -6,8 +6,8 @@
 
 namespace events
 {
-	class ArmorOrApparelEquippedEventDispatcher : 
-		public RE::BSTEventSink<RE::TESEquipEvent>, 
+	class ArmorOrApparelEquippedEventDispatcher :
+		public RE::BSTEventSink<RE::TESEquipEvent>,
 		public EventDispatcher<ArmorOrApparelEquippedEvent>
 	{
 	public:
@@ -23,16 +23,16 @@ namespace events
 		EventResult ProcessEvent(const Event& a_event, RE::BSTEventSource<Event>* a_eventSource) override
 		{
 			//logger::c_info("Item actor_who {}({:X}), baseObject {:X}, origRef {:X} {}", a_event.actor->GetDisplayFullName(), a_event.actor->GetFormID(), a_event.baseObject, a_event.origRef, a_event.equipped ? "Equipped" : "Unequipped");
-			
+
 			auto actor = a_event.actor.get();
 			auto object_form = RE::TESObjectREFR::LookupByID(a_event.baseObject);
 
 			if (auto armo_form = object_form->As<RE::TESObjectARMO>(); armo_form != nullptr && actor != nullptr) {
 				logger::c_info("Item actor {}, armo {}, {}", utils::make_str(actor), utils::make_str(armo_form), a_event.equipped ? "Equipped" : "Unequipped");
-			
+
 				this->Dispatch({ actor, armo_form, a_event.equipped });
 			}
-				
+
 			return EventResult::kContinue;
 		}
 
@@ -42,7 +42,7 @@ namespace events
 		}
 	};
 
-	class ActorLoadedEventDispatcher : 
+	class ActorLoadedEventDispatcher :
 		public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
 		public EventDispatcher<ActorLoadedEvent>
 	{
@@ -77,7 +77,8 @@ namespace events
 		}
 	};
 
-	inline void RegisterForAllEvents() {
+	inline void RegisterForAllEvents()
+	{
 		ArmorOrApparelEquippedEventDispatcher::GetSingleton()->Register();
 		ActorLoadedEventDispatcher::GetSingleton()->Register();
 	}
