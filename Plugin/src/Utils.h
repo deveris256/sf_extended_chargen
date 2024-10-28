@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include <RE/T/TESForm.h>
+#include <nlohmann/json.hpp>
 
 namespace utils
 {
@@ -20,9 +21,15 @@ namespace utils
 	// Return only the folder path
 	std::string_view GetPluginFolder();
 
+	std::string GetPluginIniFile();
+
 	std::string_view GetPluginLogFile();
 
 	std::string GetCurrentTimeString(std::string fmt = "%d.%m.%Y %H:%M:%S");
+
+	RE::Actor* GetSelActorOrPlayer();
+
+	void saveDataJSON(nlohmann::json);
 
 	inline std::string make_str(RE::TESForm* a_form)
 	{
