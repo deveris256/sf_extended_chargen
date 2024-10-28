@@ -10,7 +10,7 @@
 #include <nlohmann/json.hpp>
 
 #include "LogWrapper.h"
-#include "Sniffer.h"
+#include "SFEventHandler.h"
 
 // SFSEPlugin_Version
 DLLEXPORT constinit auto SFSEPlugin_Version = []() noexcept {
@@ -56,6 +56,8 @@ void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 	case SFSE::MessagingInterface::kPostDataLoad:
 		{
 			hasLoaded = true;
+
+			events::RegisterForAllEvents();
 		}
 		break;
 	default:
@@ -528,12 +530,10 @@ DLLEXPORT bool SFSEAPI SFSEPlugin_Load(const SFSE::LoadInterface* a_sfse)
 	//#ifndef NDEBUG
 	//	MessageBoxA(NULL, "EXTENDED CHARGEN LOADED. SORRY FOR THE INTERRUPTION...", Plugin::NAME.data(), NULL);
 	//#endif
-	//logger::info("Extended Chargen loaded.");
+	logger::info("Extended Chargen loaded.");
 
 	SFSE::Init(a_sfse, false);
 	SFSE::GetMessagingInterface()->RegisterListener(MessageCallback);
-
-	//sniffer::RegisterForAllEvents();
 
 	return true;
 }
