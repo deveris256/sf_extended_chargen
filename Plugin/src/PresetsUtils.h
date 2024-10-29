@@ -11,6 +11,9 @@ namespace presets
 	// Getters
 	//
 
+	// Gets morphs JSON data (Shape blends, Morph regions, Facebones)
+	nlohmann::json getJsonMorphsData(RE::TESNPC* npc);
+
 	// Gets JSON data for colors (skin tone, eye color, etc.)
 	nlohmann::json getJsonColorData(RE::TESNPC* npc);
 
@@ -29,6 +32,9 @@ namespace presets
 	//
 	// Setters
 	//
+
+	// Applies morph data to an actor
+	void applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata);
 
 	// Applies AVM data to actor
 	void applyDataAVM(RE::TESNPC* npc, nlohmann::json avmdata);

@@ -7,6 +7,51 @@
 // Getting data from NPC
 //
 
+
+nlohmann::json presets::getJsonMorphsData(RE::TESNPC* npc)
+{
+	nlohmann::json j;
+
+	// Morph definitions
+	nlohmann::json j_defs;
+
+	auto npcMorphDefinitions = chargen::availableMorphDefinitions(npc);
+
+	if (npcMorphDefinitions != nullptr) {
+		for (const auto& innerPair : *npcMorphDefinitions) {
+			j_defs[innerPair.key.c_str()] = (float)innerPair.value;
+		}
+	}
+
+	// Facebones
+	nlohmann::json j_fb;
+
+	RE::BSTHashMap2<std::uint32_t, float>* npcFaceBones = chargen::availableFacebones(npc);
+
+	if (npcFaceBones != nullptr) {
+		for (const auto& pair : *npcFaceBones) {
+			j_fb[std::to_string(pair.key).c_str()] = (float)pair.value;
+		}
+	}
+
+	// Shape-blends
+	nlohmann::json j_sb;
+
+	auto shapeBlends = chargen::availableShapeBlends(npc);
+
+	if (shapeBlends != nullptr) {
+		for (const auto& [key, value] : *shapeBlends) {
+			j_sb[key.c_str()] = value;
+		}
+	}
+
+	j["MorphRegions"] = j_defs;
+	j["FaceBones"] = j_fb;
+	j["ShapeBlends"] = j_sb;
+
+	return j;
+}
+
 nlohmann::json presets::getJsonColorData(RE::TESNPC* npc)
 {
 	nlohmann::json j;
@@ -95,6 +140,7 @@ nlohmann::json presets::getPresetData(RE::TESNPC* npc)
 	j["Headparts"] = getJsonHeadpartData(npc);
 	j["Colors"] = getJsonColorData(npc);
 	j["Race"] = getRaceString(npc);
+	j["Morphs"] = getJsonMorphsData(npc);
 
 	return j;
 }
@@ -102,6 +148,43 @@ nlohmann::json presets::getPresetData(RE::TESNPC* npc)
 //
 // Preset data loaders
 //
+
+void presets::applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata)
+{
+	nlohmann::json j_morphRegions = morphdata["MorphRegions"];
+	nlohmann::json j_faceBones = morphdata["FaceBones"];
+	nlohmann::json j_shapeBlends = morphdata["ShapeBlends"];
+
+	RE::BSTHashMap<RE::BSFixedStringCS, float>* npcMorphDefinitions = chargen::availableMorphDefinitions(npc);
+
+	if (npcMorphDefinitions != nullptr) {
+		npcMorphDefinitions->clear();
+
+		for (const auto& md : j_morphRegions.items()) {
+			npcMorphDefinitions->insert(std::make_pair(RE::BSFixedStringCS(md.key()), static_cast<float>(md.value())));
+		}
+	}
+
+	auto faceBones = chargen::availableFacebones(npc);
+
+	if (faceBones != nullptr) {
+		faceBones->clear();
+
+		for (const auto& fb : j_faceBones.items()) {
+			faceBones->insert(std::make_pair(static_cast<uint32_t>(std::stoul(fb.key())), (float)fb.value()));
+		}
+	}
+	
+	auto shapeBlends = chargen::availableShapeBlends(npc);
+
+	if (shapeBlends != nullptr) {
+		shapeBlends->clear();
+
+		for (const auto& sb : j_shapeBlends.items()) {
+			shapeBlends->insert(std::make_pair(RE::BSFixedStringCS(sb.key()), (float)sb.value()));
+		}
+	}
+}
 
 void presets::applyDataAVM(RE::TESNPC* npc, nlohmann::json avmdata) {
 	npc->tintAVMData.clear();
@@ -214,6 +297,10 @@ void presets::loadPresetData(RE::Actor* actor) // TODO: Load preset from file na
 	// Headparts
 	if (j["Headparts"].size() >= 1) {
 		applyDataHeadparts(npc, j["Headparts"]);
+	}
+
+	if (j["Sliders"].size() >= 1) {
+		applyDataMorphs(npc, j["Morphs"]);
 	}
 
 	// Race

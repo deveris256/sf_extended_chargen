@@ -149,6 +149,7 @@ namespace ExtendedChargen
 			// Weight
 			UI->Text("Weight");
 			auto* weights = chargen::availableMorphWeight(actorNpc);
+
 			for (const auto& [str, weightData] : *weights) {
 				if (UI->SliderFloat(
 						str.c_str(),
@@ -169,7 +170,6 @@ namespace ExtendedChargen
 				UI->Text("Shape Blends (Morphs)");
 
 				for (const auto& pair : *shapeBlends) {
-					//UI->Text(std::to_string().c_str());
 					if (UI->SliderFloat(
 							pair.key.c_str(),
 							(float*)&pair.value,
@@ -188,12 +188,10 @@ namespace ExtendedChargen
 			if (npcMorphDefinitions != nullptr) {
 				UI->Text("Morph Definitions");
 
-				for (const auto& innerPair : *npcMorphDefinitions) {
-					const RE::BSFixedStringCS innerKey = innerPair.key;
-
+				for (const auto& shapeBlendsPair : *npcMorphDefinitions) {
 					if (UI->SliderFloat(
-							innerKey.c_str(),
-							(float*)&innerPair.value,
+							shapeBlendsPair.key.c_str(),
+							(float*)&shapeBlendsPair.value,
 							0.0f,
 							1.0f,
 							NULL)) {
@@ -203,15 +201,15 @@ namespace ExtendedChargen
 			}
 
 			// Facebones sliders
-			UI->Text("Facebones");
 			RE::BSTHashMap2<std::uint32_t, float>* npcFaceBones = chargen::availableFacebones(actorNpc);
 
 			if (npcFaceBones != nullptr) {
+				UI->Text("Facebones");
+
 				for (const auto& pair : *npcFaceBones) {
-					float key = pair.key;
 
 					if (UI->SliderFloat(
-							std::to_string(key).c_str(),
+							std::to_string(pair.key).c_str(),
 							(float*)&pair.value,
 							-16.0f,
 							16.0f,
