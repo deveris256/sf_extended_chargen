@@ -299,7 +299,8 @@ void presets::loadPresetData(RE::Actor* actor) // TODO: Load preset from file na
 		applyDataHeadparts(npc, j["Headparts"]);
 	}
 
-	if (j["Sliders"].size() >= 1) {
+	// Morphs
+	if (j["Morphs"].size() >= 1) {
 		applyDataMorphs(npc, j["Morphs"]);
 	}
 
