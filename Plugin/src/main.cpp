@@ -43,7 +43,7 @@ static std::atomic<bool> hasLoaded = false;
 
 void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 {
-	events::GameDataLoadedEventDispatcher::GetSingleton()->Dispatch({ SFSE::MessagingInterface::MessageType(a_msg->type) });
+	//events::GameDataLoadedEventDispatcher::GetSingleton()->Dispatch({ SFSE::MessagingInterface::MessageType(a_msg->type) });
 
 	switch (a_msg->type) {
 	case SFSE::MessagingInterface::kPostDataLoad:
@@ -53,11 +53,11 @@ void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 		break;
 	case SFSE::MessagingInterface::kPostLoad:
 		{
-			events::RegisterHandlers();
+			//events::RegisterHandlers();
 			
-			hooks::HookManager::GetSingleton()->Initialize(0x1000)->InstallAllHooks();
+			//hooks::HookManager::GetSingleton()->Initialize(0x1000)->InstallAllHooks();
 
-			ExtendedChargen::ArmorKeywordMorphManager::GetSingleton()->Register();
+			//ExtendedChargen::ArmorKeywordMorphManager::GetSingleton()->Register();
 		}
 		break;
 	default:

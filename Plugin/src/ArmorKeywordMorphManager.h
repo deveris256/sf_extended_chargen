@@ -119,6 +119,15 @@ namespace ExtendedChargen
 		void OnEvent(const events::ActorUpdateEvent& a_event, events::EventDispatcher<events::ActorUpdateEvent>* a_dispatcher) override
 		{
 			//logger::c_info("Actor {} updated with deltaTime: {}", utils::make_str(a_event.actor), a_event.deltaTime);
+			auto actor = a_event.actor;
+			if (!actor) {
+				return;
+			}
+
+			auto npc = actor->GetNPC();
+			if (!npc) {
+				return;
+			}
 		}
 
 		void Register()
