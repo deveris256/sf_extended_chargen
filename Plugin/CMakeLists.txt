@@ -37,6 +37,9 @@ source_group(
 )
 
 # dependencies
+find_path(DETOURS_INCLUDE_DIRS "detours/detours.h")
+find_library(DETOURS_LIBRARY detours REQUIRED)
+
 find_package(spdlog CONFIG REQUIRED)
 find_dependency_path(CommonLibSF include/SFSE/SFSE.h)
 
@@ -53,6 +56,8 @@ add_library(
 )
 
 # include dir
+target_include_directories(${PROJECT_NAME} PRIVATE ${DETOURS_INCLUDE_DIRS})
+
 target_include_directories(
 	${PROJECT_NAME}
 	PRIVATE
@@ -68,6 +73,7 @@ target_link_libraries(
 		CommonLibSF::CommonLibSF
 		spdlog::spdlog
 )
+target_link_libraries(${PROJECT_NAME} PRIVATE ${DETOURS_LIBRARY})
 
 # compiler def
 if (MSVC)

@@ -9,6 +9,7 @@
     "nlohmann-json",
     "simpleini",
     "tomlplusplus",
-    "xbyak"
+    "xbyak",
+    "detours"
   ]
 }

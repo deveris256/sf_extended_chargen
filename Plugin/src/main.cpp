@@ -7,12 +7,15 @@
 #include "CCF_API.h"
 #include "NiAVObject.h"
 #include "betterapi.h"
-
-#include "LogWrapper.h"
-#include "SFEventHandler.h"
 #include "PresetsUtils.h"
 #include "Utils.h"
 #include "ChargenUtils.h"
+
+
+#include "LogWrapper.h"
+#include "SFEventHandler.h"
+#include "ArmorKeywordMorphManager.h"
+#include "HookManager.h"
 
 // SFSEPlugin_Version
 DLLEXPORT constinit auto SFSEPlugin_Version = []() noexcept {
@@ -40,12 +43,21 @@ static std::atomic<bool> hasLoaded = false;
 
 void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 {
+	events::GameDataLoadedEventDispatcher::GetSingleton()->Dispatch({ SFSE::MessagingInterface::MessageType(a_msg->type) });
+
 	switch (a_msg->type) {
 	case SFSE::MessagingInterface::kPostDataLoad:
 		{
 			hasLoaded = true;
+		}
+		break;
+	case SFSE::MessagingInterface::kPostLoad:
+		{
+			events::RegisterHandlers();
+			
+			hooks::HookManager::GetSingleton()->Initialize(0x1000)->InstallAllHooks();
 
-			//events::RegisterForAllEvents();
+			ExtendedChargen::ArmorKeywordMorphManager::GetSingleton()->Register();
 		}
 		break;
 	default:

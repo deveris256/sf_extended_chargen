@@ -1,6 +1,4 @@
 #pragma once
-#include "LogWrapper.h"
-#include "Utils.h"
 
 namespace events
 {
@@ -8,32 +6,6 @@ namespace events
 	{
 	public:
 		virtual ~EventBase() = default;
-	};
-
-	class ArmorOrApparelEquippedEvent : public EventBase
-	{
-	public:
-		ArmorOrApparelEquippedEvent(RE::Actor* a_actor, RE::TESObjectARMO* a_armorOrApparel, bool a_equipped) :
-			actor(a_actor),
-			armorOrApparel(a_armorOrApparel),
-			equipped(a_equipped)
-		{}
-
-		RE::Actor*         actor;
-		RE::TESObjectARMO* armorOrApparel;
-		bool               equipped;
-	};
-
-	class ActorLoadedEvent : public EventBase
-	{
-	public:
-		ActorLoadedEvent(RE::Actor* a_actor, bool a_loaded) :
-			actor(a_actor),
-			loaded(a_loaded)
-		{}
-
-		RE::Actor* actor;
-		bool       loaded;
 	};
 
 	template <class _Event_T>
@@ -44,6 +16,9 @@ namespace events
 		class Listener
 		{
 		public:
+			using event_type = _Event_T;
+			using dispatcher_type = EventDispatcher<_Event_T>;
+
 			virtual ~Listener() = default;
 			virtual void OnEvent(const _Event_T& a_event, EventDispatcher<_Event_T>* a_dispatcher) = 0;
 		};
@@ -51,12 +26,21 @@ namespace events
 		virtual ~EventDispatcher() = default;
 
 		std::vector<std::weak_ptr<Listener>> listeners;
+		std::vector<Listener*>               singleton_listeners;
 		std::mutex                           mtx;
 
 		void AddListener(std::shared_ptr<Listener> a_listener)
 		{
 			std::lock_guard lock(mtx);
 			listeners.emplace_back(a_listener);
+		}
+
+		void AddStaticListener(Listener* a_listener)
+		{
+			std::lock_guard lock(mtx);
+			if (std::find(singleton_listeners.begin(), singleton_listeners.end(), a_listener) == singleton_listeners.end()) {
+				singleton_listeners.emplace_back(a_listener);
+			}
 		}
 
 		void RemoveListener(Listener* a_listener)
@@ -71,8 +55,14 @@ namespace events
 							return listener.get() == a_listener;
 						}
 						return false;
-					}),
-				listeners.end());
+					}
+				),
+				listeners.end()
+			);
+			singleton_listeners.erase(
+				std::remove(singleton_listeners.begin(), singleton_listeners.end(), a_listener),
+				singleton_listeners.end()
+			);
 		}
 
 		void Dispatch(_Event_T a_event)
@@ -90,6 +80,10 @@ namespace events
 
 			for (auto& listener : active_listeners) {
 				listener->OnEvent(a_event, this);
+			}
+
+			for (auto& singleton_listener : singleton_listeners) {
+				singleton_listener->OnEvent(a_event, this);
 			}
 		}
 	};
