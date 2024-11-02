@@ -104,6 +104,9 @@
 // winnt
 #include <ShlObj_core.h>
 
+// TBB
+#include <tbb/tbb.h>
+
 #undef min
 #undef max
 

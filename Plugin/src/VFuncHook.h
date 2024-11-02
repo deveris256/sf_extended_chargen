@@ -81,6 +81,9 @@ namespace vfunc
 				return false;
 			}
 			m_vfunc_hooks[hookTarget] = hook;
+#ifdef _REL_WITH_DEB_INFO
+			m_offsets[hookTarget] = GetOffset(hookTarget);
+#endif
 			return true;
 		}
 
@@ -111,6 +114,22 @@ namespace vfunc
 			m_vfunc_hooks.erase(hookTarget);
 			return true;
 		}
+
+#ifdef _REL_WITH_DEB_INFO
+
+		uintptr_t GetOffset(void* target)
+		{
+			return (uintptr_t)target - (uintptr_t)image_base;
+		}
+
+	private:
+		GlobalVFuncHookManager() {
+			image_base = (void*)REL::Module::get().base();
+		}
+
+		void* image_base = nullptr;
+		std::unordered_map<void*, uintptr_t> m_offsets;
+#endif
 	};
 
 	template <typename _Instance_T, typename _Rtn_T, typename... _Args>

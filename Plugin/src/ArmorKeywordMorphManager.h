@@ -8,7 +8,8 @@ namespace ExtendedChargen
 		public events::ArmorOrApparelEquippedEventDispatcher::Listener,
 		public events::ActorLoadedEventDispatcher::Listener,
 		public events::GameDataLoadedEventDispatcher::Listener,
-		public events::EventDispatcher<events::ActorUpdateEvent>::Listener
+		public events::EventDispatcher<events::ActorUpdateEvent>::Listener,
+		public events::EventDispatcher<events::ActorFirstUpdateEvent>::Listener
 	{
 	public:
 		class KeywordMorphData
@@ -112,18 +113,24 @@ namespace ExtendedChargen
 				return;
 			}
 
-			// Scan for morph keywords for caching (optional)
+			// Load settings & Scan for morph keywords for caching (optional)
 			return;
 		}
 
 		void OnEvent(const events::ActorUpdateEvent& a_event, events::EventDispatcher<events::ActorUpdateEvent>* a_dispatcher) override
 		{
-			//logger::c_info("Actor {} updated with deltaTime: {}", utils::make_str(a_event.actor), a_event.deltaTime);
+			//logger::c_info("Actor {} updated with deltaTime: {} ms", utils::make_str(a_event.actor), a_event.deltaTime * 1000);
 			auto actor = a_event.actor;
-			if (!actor) {
+			auto npc = actor->GetNPC();
+			if (!npc) {
 				return;
 			}
+		}
 
+		void OnEvent(const events::ActorFirstUpdateEvent& a_event, events::EventDispatcher<events::ActorFirstUpdateEvent>* a_dispatcher) override
+		{
+			logger::c_info("Actor {} first updated with deltaTime: {} ms", utils::make_str(a_event.actor), a_event.deltaTime * 1000);
+			auto actor = a_event.actor;
 			auto npc = actor->GetNPC();
 			if (!npc) {
 				return;
@@ -135,7 +142,8 @@ namespace ExtendedChargen
 			events::ArmorOrApparelEquippedEventDispatcher::GetSingleton()->AddStaticListener(this);
 			events::ActorLoadedEventDispatcher::GetSingleton()->AddStaticListener(this);
 			events::GameDataLoadedEventDispatcher::GetSingleton()->AddStaticListener(this);
-			events::ActorUpdatedEventDispatcher::GetSingleton()->AddStaticListener(this);
+			events::ActorUpdatedEventDispatcher::GetSingleton()->EventDispatcher<events::ActorUpdateEvent>::AddStaticListener(this);
+			events::ActorUpdatedEventDispatcher::GetSingleton()->EventDispatcher<events::ActorFirstUpdateEvent>::AddStaticListener(this);
 		}
 
 

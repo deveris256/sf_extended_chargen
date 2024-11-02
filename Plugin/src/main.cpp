@@ -55,7 +55,7 @@ void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 		{
 			//events::RegisterHandlers();
 			
-			//hooks::HookManager::GetSingleton()->Initialize(0x1000)->InstallAllHooks();
+			//hooks::InstallHooks();
 
 			//ExtendedChargen::ArmorKeywordMorphManager::GetSingleton()->Register();
 		}

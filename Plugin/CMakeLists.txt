@@ -41,6 +41,7 @@ find_path(DETOURS_INCLUDE_DIRS "detours/detours.h")
 find_library(DETOURS_LIBRARY detours REQUIRED)
 
 find_package(spdlog CONFIG REQUIRED)
+find_package(TBB CONFIG REQUIRED)
 find_dependency_path(CommonLibSF include/SFSE/SFSE.h)
 
 # cmake target
@@ -72,6 +73,7 @@ target_link_libraries(
 	PRIVATE
 		CommonLibSF::CommonLibSF
 		spdlog::spdlog
+		TBB::tbb
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE ${DETOURS_LIBRARY})
 

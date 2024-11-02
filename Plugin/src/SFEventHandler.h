@@ -3,14 +3,7 @@
 #include "RE/E/Events.h"
 
 #include "EventDispatcher.h"
-#include "VFuncEventDispatcher.h"
-
-namespace vfunc
-{
-	using ActorUpdateVFuncEventDispatcher = vfunc::VirtualFunctionCalledEventDispatcher<0x13F, RE::Actor, void, float>;
-	using ActorUpdateVFuncEventListenerBase = vfunc::VirtualFunctionCalledEventListenerBase<0x13F, RE::Actor, void, float>;
-
-}
+#include "HookManager.h"
 
 namespace events
 {
@@ -76,11 +69,27 @@ namespace events
 	public:
 		ActorUpdateEvent(RE::Actor* a_actor, float a_deltaTime) :
 			actor(a_actor),
-			deltaTime(a_deltaTime)
+			deltaTime(a_deltaTime),
+			lastUpdateTime(std::chrono::steady_clock::now())
 		{}
 
-		RE::Actor* actor;
-		float      deltaTime;
+		RE::Actor*								actor;
+		float									deltaTime;
+		std::chrono::steady_clock::time_point	lastUpdateTime;
+	};
+
+	class ActorFirstUpdateEvent : public EventBase
+	{
+	public:
+		ActorFirstUpdateEvent(RE::Actor* a_actor, float a_deltaTime) :
+			actor(a_actor),
+			deltaTime(a_deltaTime),
+			lastUpdateTime(std::chrono::steady_clock::now())
+		{}
+
+		RE::Actor*								actor;
+		float									deltaTime;
+		std::chrono::steady_clock::time_point	lastUpdateTime;
 	};
 
 	class GameLoadedEvent : public EventBase
@@ -100,8 +109,6 @@ namespace events
 	{
 	public:
 		using EventResult = RE::BSEventNotifyControl;
-		using Event = RE::TESEquipEvent;
-		using Event2 = RE::ActorItemEquipped::Event;
 
 		static ArmorOrApparelEquippedEventDispatcher* GetSingleton()
 		{
@@ -109,9 +116,9 @@ namespace events
 			return &singleton;
 		}
 
-		EventResult ProcessEvent(const Event& a_event, RE::BSTEventSource<Event>* a_eventSource) override
+		EventResult ProcessEvent(const RE::TESEquipEvent& a_event, RE::BSTEventSource<RE::TESEquipEvent>* a_eventSource) override
 		{
-			logger::c_info("TESEquipEvent: Item actor_who {}({:X}), baseObject {:X}, origRef {:X} {}", a_event.actor->GetDisplayFullName(), a_event.actor->GetFormID(), a_event.baseObject, a_event.origRef, a_event.equipped ? "Equipped" : "Unequipped");
+			//logger::c_info("TESEquipEvent: Item actor_who {}({:X}), baseObject {:X}, origRef {:X} {}", a_event.actor->GetDisplayFullName(), a_event.actor->GetFormID(), a_event.baseObject, a_event.origRef, a_event.equipped ? "Equipped" : "Unequipped");
 
 			auto actor = a_event.actor.get();
 			auto object_form = RE::TESObjectREFR::LookupByID(a_event.baseObject);
@@ -127,9 +134,9 @@ namespace events
 			return EventResult::kContinue;
 		}
 
-		EventResult ProcessEvent(const Event2& a_event, RE::BSTEventSource<Event2>* a_eventSource) override
+		EventResult ProcessEvent(const RE::ActorItemEquipped::Event& a_event, RE::BSTEventSource<RE::ActorItemEquipped::Event>* a_eventSource) override
 		{
-			logger::c_info("ActorItemEquipped::Event: Item actor_who {}({:X}), item {}", a_event.actor->GetDisplayFullName(), a_event.actor->GetFormID(), a_event.item->GetFormID());
+			//logger::c_info("ActorItemEquipped::Event: Item actor_who {}({:X}), item {}", a_event.actor->GetDisplayFullName(), a_event.actor->GetFormID(), a_event.item->GetFormID());
 
 			auto actor = a_event.actor.get();
 			auto object_form = a_event.item;
@@ -141,8 +148,8 @@ namespace events
 
 		void Register()
 		{
-			Event::GetEventSource()->RegisterSink(this);
-			Event2::GetEventSource()->RegisterSink(this);
+			RE::TESEquipEvent::GetEventSource()->RegisterSink(this);
+			RE::ActorItemEquipped::Event::GetEventSource()->RegisterSink(this);
 		}
 	};
 
@@ -242,8 +249,9 @@ namespace events
 
 	class ActorUpdatedEventDispatcher :
 		public RE::BSTEventSink<RE::TESObjectLoadedEvent>,
-		public vfunc::ActorUpdateVFuncEventListenerBase,
-		public EventDispatcher<ActorUpdateEvent>
+		public hooks::ActorUpdateFuncHook::Listener,
+		public EventDispatcher<ActorUpdateEvent>,
+		public EventDispatcher<ActorFirstUpdateEvent>
 	{
 	public:
 		using EventResult = RE::BSEventNotifyControl;
@@ -259,21 +267,15 @@ namespace events
 		{
 			auto object_form = RE::TESObjectREFR::LookupByID(a_event.formID);
 			if (auto actor_form = object_form->As<RE::Actor>(); actor_form != nullptr) {
-				
-				auto vfunc_event_dispatcher = vf_dispatcher_type::GetInstance();
-
 				if (a_event.loaded) {
-					vfunc_event_dispatcher->WatchInstance(actor_form);
+					this->WatchInstance(actor_form);
 					
-					if (vfunc_event_dispatcher->NumWatching() > 512) {
-						logger::c_warn("ActorLoadedEventDispatcher::ProcessEvent(): ActorUpdateVFuncEventDispatcher watch list is too large! (instance count > 512)");
-					}
-					if (vfunc::GlobalVFuncHookManager::GetInstance()->NumHooks() > 64) {
-						logger::c_warn("ActorLoadedEventDispatcher::ProcessEvent(): Too many virtual function hooks! (hook count > 128)");
+					if (this->NumWatching() > 512) {
+						logger::c_warn("ActorLoadedEventDispatcher::ProcessEvent(): watch list is too large! (instance count > 512)");
 					}
 				}
 				else {
-					vfunc_event_dispatcher->UnwatchInstance(actor_form);
+					this->UnwatchInstance(actor_form);
 				}
 			}
 
@@ -282,14 +284,67 @@ namespace events
 
 		void OnEvent(const event_type& a_vfunc_event, dispatcher_type* a_vfunc_dispatcher) override 
 		{
-			this->Dispatch({ a_vfunc_event.instance, a_vfunc_event.GetArg<0>() });
+			auto actor = a_vfunc_event.GetArg<0>();
+			if (!_find(actor) || !_get(actor)) {
+				_insert_or_allocate(actor, true);
+				this->EventDispatcher<ActorFirstUpdateEvent>::Dispatch({ actor, a_vfunc_event.GetArg<1>() });
+			}
+			this->EventDispatcher<ActorUpdateEvent>::Dispatch({ actor, a_vfunc_event.GetArg<1>() });
 		}
 
 		void Register()
 		{
 			Event::GetEventSource()->RegisterSink(this);
-			vfunc::ActorUpdateVFuncEventDispatcher::GetInstance()->AddStaticListener(this);
+			hooks::ActorUpdateFuncHook::GetSingleton()->AddStaticListener(this);
 		}
+
+		size_t NumWatching()
+		{
+			return m_actor_updated.size();
+		}
+
+	protected:
+		void WatchInstance(RE::Actor* a_actor)
+		{
+			m_actor_updated.insert({ a_actor, false });
+		}
+
+		void UnwatchInstance(RE::Actor* a_actor)
+		{
+			m_actor_updated.erase(a_actor);
+		}
+
+		bool _find(RE::Actor* a_actor) // Don't do anything if the element doesn't exist
+		{
+			tbb::concurrent_hash_map<RE::Actor*, bool>::const_accessor acc;
+			return m_actor_updated.find(acc, a_actor);
+		}
+
+		bool _get(RE::Actor* a_actor) 
+		{
+			tbb::concurrent_hash_map<RE::Actor*, bool>::const_accessor acc;
+			if (m_actor_updated.find(acc, a_actor)) {
+				return acc->second;
+			}
+			return false;
+		}
+
+		void _try_update(RE::Actor* a_actor, bool a_updated) // Don't do anything if the element doesn't exist
+		{
+			tbb::concurrent_hash_map<RE::Actor*, bool>::accessor acc;
+			if (m_actor_updated.find(acc, a_actor)) {
+				acc->second = a_updated;
+			}
+		}
+
+		void _insert_or_allocate(RE::Actor* a_actor, bool a_updated) // Insert if not exist, otherwise update
+		{
+			tbb::concurrent_hash_map<RE::Actor*, bool>::accessor acc;
+			m_actor_updated.insert(acc, a_actor);
+			acc->second = a_updated;
+		}
+
+		tbb::concurrent_hash_map<RE::Actor*, bool> m_actor_updated;
 	};
 
 	inline void RegisterHandlers()
