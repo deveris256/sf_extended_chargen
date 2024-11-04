@@ -76,20 +76,19 @@ namespace events
 		RE::Actor*								actor;
 		float									deltaTime;
 		std::chrono::steady_clock::time_point	lastUpdateTime;
+
+		time_t when() const
+		{
+			return std::chrono::duration_cast<std::chrono::milliseconds>(lastUpdateTime.time_since_epoch()).count();
+		}
 	};
 
-	class ActorFirstUpdateEvent : public EventBase
+	class ActorFirstUpdateEvent : public ActorUpdateEvent 
 	{
 	public:
 		ActorFirstUpdateEvent(RE::Actor* a_actor, float a_deltaTime) :
-			actor(a_actor),
-			deltaTime(a_deltaTime),
-			lastUpdateTime(std::chrono::steady_clock::now())
+			ActorUpdateEvent(a_actor, a_deltaTime)
 		{}
-
-		RE::Actor*								actor;
-		float									deltaTime;
-		std::chrono::steady_clock::time_point	lastUpdateTime;
 	};
 
 	class GameLoadedEvent : public EventBase
@@ -285,7 +284,7 @@ namespace events
 		void OnEvent(const event_type& a_vfunc_event, dispatcher_type* a_vfunc_dispatcher) override 
 		{
 			auto actor = a_vfunc_event.GetArg<0>();
-			if (!_find(actor) || !_get(actor)) {
+			if (!_get(actor)) {
 				_insert_or_allocate(actor, true);
 				this->EventDispatcher<ActorFirstUpdateEvent>::Dispatch({ actor, a_vfunc_event.GetArg<1>() });
 			}

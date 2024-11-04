@@ -51,4 +51,20 @@ namespace chargen
 
 	// Debug: Loads default race appearance
 	void loadDefaultRaceAppearance(RE::Actor* actor);
+
+	//
+	// Skin/Equipment Utils
+	//
+	RE::TESObjectARMO* getActorSkin(RE::Actor* actor);
+
+	bool equipObject(RE::Actor* actor, RE::BGSObjectInstance& object, RE::BGSEquipSlot* slot, bool queueEquip, bool forceEquip, bool playSounds, bool applyNow, bool locked);
+
+	bool unequipObject(RE::Actor* actor, RE::BGSObjectInstance& object, RE::BGSEquipSlot* slot, bool queueUnequip, bool forceUnequip, bool playSounds, bool applyNow, RE::BGSEquipSlot* slotBeingReplaced);
+
+	namespace externs
+	{
+		extern REL::Relocation<void**>                      manager_singleton_ptr;
+		extern REL::Relocation<bool (*)(void*, RE::Actor*, RE::BGSObjectInstance&, RE::BGSEquipSlot*, bool, bool, bool, bool, bool)> equipObject_func;
+		extern REL::Relocation<bool (*)(void*, RE::Actor*, RE::BGSObjectInstance&, RE::BGSEquipSlot*, bool, bool, bool, bool, RE::BGSEquipSlot*)> unequipObject_func;
+	}
 }

@@ -1,6 +1,6 @@
 #include "Utils.h"
 
-std::string_view utils::GetPluginFolder()
+std::string utils::GetPluginFolder()
 {
 	char    path[MAX_PATH];
 	HMODULE hModule = nullptr;  // nullptr == current DLL
@@ -11,12 +11,12 @@ std::string_view utils::GetPluginFolder()
 	size_t      lastSlash = fullPath.find_last_of("\\/");
 	std::string folder = fullPath.substr(0, lastSlash) + "\\Data\\SFSE\\Plugins\\" + std::string(GetPluginName());
 
-	return folder.c_str();
+	return folder;
 }
 
 std::string utils::GetPluginIniFile()
 {
-	std::string iniFile = std::string(utils::GetPluginFolder()) + "\\ExtendedChargen.ini";
+	std::string iniFile = utils::GetPluginFolder() + "\\ExtendedChargen.ini";
 	return iniFile;
 }
 

@@ -14,6 +14,7 @@ namespace logger
 	};
 
 	extern std::shared_ptr<spdlog::logger> g_logger;
+	extern std::recursive_mutex			 g_console_logger_mutex;
 
 	// Output to log file next to the plugin
 	template <LogLevel _Log_LVL, class... Args>
@@ -65,7 +66,10 @@ namespace logger
 		else
 			log_str = std::vformat(a_fmt.get(), std::make_format_args(a_args...));
 
-		RE::ConsoleLog::GetSingleton()->PrintLine(log_str.c_str());
+		{
+			std::lock_guard lock(g_console_logger_mutex);
+			RE::ConsoleLog::GetSingleton()->PrintLine(log_str.c_str());
+		}
 	}
 
 	template <class... Args>

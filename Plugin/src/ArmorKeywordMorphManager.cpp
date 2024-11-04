@@ -1,22 +1,22 @@
 #include "ArmorKeywordMorphManager.h"
 
-std::vector<RE::BGSKeyword*> ExtendedChargen::ArmorKeywordMorphManager::ScanEquippedArmor(RE::Actor* a_actor)
+std::unordered_set<RE::BGSKeyword*> ExtendedChargen::ArmorKeywordMorphManager::ScanEquippedArmor(RE::Actor* a_actor, std::unordered_set<RE::TESBoundObject*> exclude_list)
 {
-	std::vector<RE::BGSKeyword*> results;
+	std::unordered_set<RE::BGSKeyword*> results;
 
 	if (!a_actor) {
 		return results;
 	}
 
-	auto process_armor = [this, &results](const RE::BGSInventoryItem& a_item) -> RE::BSContainer::ForEachResult {
-		if (!a_item.object || !a_item.object->Is<RE::TESObjectARMO>() /*|| !a_item.object->Is<RE::TESObjectWEAP>() */) {
+	auto process_armor = [this, &results, &exclude_list](const RE::BGSInventoryItem& a_item) -> RE::BSContainer::ForEachResult {
+		if (!a_item.object || !a_item.object->Is<RE::TESObjectARMO>() || exclude_list.contains(a_item.object) /*|| !a_item.object->Is<RE::TESObjectWEAP>() */) {
 			return RE::BSContainer::ForEachResult::kContinue;
 		}
 
 		auto armor = a_item.object->As<RE::TESObjectARMO>();
 		for (auto& kw : armor->keywords) {
 			if (kw && this->IsMorphKeyword(kw)) {
-				results.push_back(kw);
+				results.insert(kw);
 			}
 		}
 
@@ -32,7 +32,7 @@ std::vector<RE::BGSKeyword*> ExtendedChargen::ArmorKeywordMorphManager::ScanEqui
 
 		for (auto& kw : instance_data_kw_form->keywords) {
 			if (kw && this->IsMorphKeyword(kw)) {
-				results.push_back(kw);
+				results.insert(kw);
 			}
 		}
 	};

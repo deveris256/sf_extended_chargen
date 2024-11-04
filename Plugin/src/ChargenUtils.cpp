@@ -4,6 +4,16 @@
 // Getters of NPC/Actor data
 //
 
+namespace chargen
+{
+	namespace externs
+	{
+		REL::Relocation<void**> manager_singleton_ptr{ RE::ID::ActorEquipManager::Singleton };
+		REL::Relocation<bool (*)(void*, RE::Actor*, RE::BGSObjectInstance&, RE::BGSEquipSlot*, bool, bool, bool, bool, bool)> equipObject_func { RE::ID::ActorEquipManager::EquipObject };
+		REL::Relocation<bool (*)(void*, RE::Actor*, RE::BGSObjectInstance&, RE::BGSEquipSlot*, bool, bool, bool, bool, RE::BGSEquipSlot*)> unequipObject_func { RE::ID::ActorEquipManager::UnequipObject };
+	}
+}
+
 float* chargen::getPerformanceMorphs(RE::Actor* actor)
 {
 	auto actorLoadedData = actor->loadedData.lock_write();
@@ -162,4 +172,35 @@ void chargen::loadDefaultRaceAppearance(RE::Actor* actor)
 	for (auto rhp : raceHeadparts[1]) {  // TODO: Genders
 		guard.operator->().emplace_back(rhp);
 	}
+}
+
+RE::TESObjectARMO* chargen::getActorSkin(RE::Actor* actor)
+{
+	auto npc = actor->GetNPC();
+	if (!npc) {
+		return nullptr;
+	}
+
+	auto skin = npc->formSkin;
+	if (skin) {
+		return skin;
+	}
+
+	auto race = npc->GetRace();
+	if (!race) {
+		return nullptr;
+	}
+
+	auto race_skin = race->formSkin;
+	return race_skin;
+}
+
+bool chargen::equipObject(RE::Actor* actor, RE::BGSObjectInstance& object, RE::BGSEquipSlot* slot, bool queueEquip, bool forceEquip, bool playSounds, bool applyNow, bool locked)
+{
+	return externs::equipObject_func(*externs::manager_singleton_ptr, actor, object, slot, queueEquip, forceEquip, playSounds, applyNow, locked);
+}
+
+bool chargen::unequipObject(RE::Actor* actor, RE::BGSObjectInstance& object, RE::BGSEquipSlot* slot, bool queueUnequip, bool forceUnequip, bool playSounds, bool applyNow, RE::BGSEquipSlot* slotBeingReplaced)
+{
+	return externs::unequipObject_func(*externs::manager_singleton_ptr, actor, object, slot, queueUnequip, forceUnequip, playSounds, applyNow, slotBeingReplaced);
 }
