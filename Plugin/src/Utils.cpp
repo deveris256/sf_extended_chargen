@@ -16,7 +16,7 @@ std::string utils::GetPluginFolder()
 
 std::string utils::GetPluginIniFile()
 {
-	std::string iniFile = utils::GetPluginFolder() + "\\ExtendedChargen.ini";
+	std::string iniFile = utils::GetPluginFolder() + std::format("\\{}.ini", GetPluginName());
 	return iniFile;
 }
 
@@ -89,4 +89,22 @@ void utils::saveDataJSON(nlohmann::json data)
 	dataFile << prettyData;
 
 	dataFile.close();
+}
+
+bool utils::caseInsensitiveCompare(const std::string& str, const char* cstr)
+{
+	size_t strLen = str.size();
+	size_t cstrLen = std::strlen(cstr);
+
+	if (strLen != cstrLen) {
+		return false;
+	}
+
+	for (size_t i = 0; i < strLen; ++i) {
+		if (std::tolower(static_cast<unsigned char>(str[i])) !=
+			std::tolower(static_cast<unsigned char>(cstr[i]))) {
+			return false;
+		}
+	}
+	return true;
 }

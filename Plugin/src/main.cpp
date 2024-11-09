@@ -14,8 +14,9 @@
 
 #include "LogWrapper.h"
 #include "SFEventHandler.h"
-#include "ArmorKeywordMorphManager.h"
 #include "HookManager.h"
+
+#include "ConditionalMorphManager.h"
 
 // SFSEPlugin_Version
 DLLEXPORT constinit auto SFSEPlugin_Version = []() noexcept {
@@ -43,7 +44,7 @@ static std::atomic<bool> hasLoaded = false;
 
 void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 {
-	//events::GameDataLoadedEventDispatcher::GetSingleton()->Dispatch({ SFSE::MessagingInterface::MessageType(a_msg->type) });
+	events::GameDataLoadedEventDispatcher::GetSingleton()->Dispatch({ SFSE::MessagingInterface::MessageType(a_msg->type) });
 
 	switch (a_msg->type) {
 	case SFSE::MessagingInterface::kPostDataLoad:
@@ -53,11 +54,9 @@ void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 		break;
 	case SFSE::MessagingInterface::kPostLoad:
 		{
-			//events::RegisterHandlers();
+			events::RegisterHandlers();
 			
-			//hooks::InstallHooks();
-
-			//ExtendedChargen::ArmorKeywordMorphManager::GetSingleton()->Register();
+			hooks::InstallHooks();
 		}
 		break;
 	default:
