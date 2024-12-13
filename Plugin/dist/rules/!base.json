@@ -3,14 +3,14 @@
         "action": "base",
         "params": [
             "{target_base}",
-            "{env:SFPath}\\Data\\SFSE\\Plugins\\"
+            "{env:SFPath}/Data/SFSE/Plugins/"
         ]
     },
     {
         "action": "copy",
         "params": [
-            "{cmake_output}\\*",
-            "{dist}\\"
+            "{cmake_output}/*",
+            "{dist}/"
         ]
     }
 ]

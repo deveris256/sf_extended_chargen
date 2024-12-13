@@ -64,4 +64,6 @@ namespace utils
 	}
 
 	bool caseInsensitiveCompare(const std::string& str, const char* cstr);
+
+	std::vector<nlohmann::json> getChargenConfig();
 }

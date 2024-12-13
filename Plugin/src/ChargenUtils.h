@@ -1,6 +1,7 @@
 #pragma once
 #include "GameForms.h"
 #include "NiAVObject.h"
+#include "Utils.h"
 
 namespace chargen
 {

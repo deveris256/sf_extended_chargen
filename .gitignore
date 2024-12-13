@@ -7,3 +7,4 @@ deploy-*.ps1
 /Plugin/dist/*
 !/Plugin/dist/
 !/Plugin/dist/*.zip
+!/Plugin/dist/*.dll

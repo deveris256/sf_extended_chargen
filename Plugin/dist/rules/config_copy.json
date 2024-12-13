@@ -2,8 +2,8 @@
     {
         "action": "copy_if",
         "params": [
-            "{dist}\\*.ini",
-            "{target_base}\\ExtendedChargen\\"
+            "{dist}/*.ini",
+            "{target_base}/ExtendedChargen/"
         ]
     }
 ]

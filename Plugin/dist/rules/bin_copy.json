@@ -2,7 +2,7 @@
     {
         "action": "copy",
         "params": [
-            "{dist}\\*.dll",
+            "{dist}/*.dll",
             "{target_base}"
         ]
     }

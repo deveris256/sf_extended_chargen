@@ -1,16 +1,17 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "name": "extendedchargen",
-  "version-string": "0.0.1",
-  "description": "Extended Chargen",
-  "homepage": "https://github.com/deveris256/sf_extended_chargen",
-  "dependencies": [
-    "spdlog",
-    "nlohmann-json",
-    "simpleini",
-    "tomlplusplus",
-    "xbyak",
-    "detours",
-    "tbb"
-  ]
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "extendedchargen",
+    "version-string": "0.0.1",
+    "description": "Extended Chargen",
+    "homepage": "https://github.com/deveris256/sf_extended_chargen",
+    "builtin-baseline": "f523208df4ae467436dc2d2eeab594fed240d552",
+    "dependencies": [
+        "detours",
+        "spdlog",
+        "nlohmann-json",
+        "simpleini",
+        "tomlplusplus",
+        "xbyak",
+        "tbb"
+    ]
 }

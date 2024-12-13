@@ -16,7 +16,7 @@
 #include "SFEventHandler.h"
 #include "HookManager.h"
 
-#include "ConditionalMorphManager.h"
+//#include "ConditionalMorphManager.h"
 
 // SFSEPlugin_Version
 DLLEXPORT constinit auto SFSEPlugin_Version = []() noexcept {
@@ -42,6 +42,8 @@ static bool appearanceChanged = false;
 
 static std::atomic<bool> hasLoaded = false;
 
+static nlohmann::json customConfig;
+
 void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 {
 	events::GameDataLoadedEventDispatcher::GetSingleton()->Dispatch({ SFSE::MessagingInterface::MessageType(a_msg->type) });
@@ -50,6 +52,7 @@ void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 	case SFSE::MessagingInterface::kPostDataLoad:
 		{
 			hasLoaded = true;
+			customConfig = utils::getChargenConfig();
 		}
 		break;
 	case SFSE::MessagingInterface::kPostLoad:
@@ -108,9 +111,9 @@ namespace ExtendedChargen
 
 		// Tabs
 		void (*TabBarPtr)(const char* const* const, uint32_t, int*) = UI->TabBar;
-		const char* tabHeaders[] = { "AVM", "Headparts", "Sliders", "Race", "Performance morphs", "Presets (WIP)" };
+		const char* tabHeaders[] = { "AVM", "Headparts", "Sliders", "Race", "Performance morphs", "Presets (WIP)", "Custom chargen" };
 
-		uint32_t tabCount = 6;
+		uint32_t tabCount = 7;
 		int      activeTab = 1;
 
 		TabBarPtr(tabHeaders, tabCount, &activeTab);
@@ -156,7 +159,7 @@ namespace ExtendedChargen
 			}
 		} else if (activeTab == 2)  // Morphs tab
 		{
-
+			UI->Text("All morphs");
 			// Weight
 			UI->Text("Weight");
 			auto* weights = chargen::availableMorphWeight(actorNpc);
@@ -262,8 +265,107 @@ namespace ExtendedChargen
 				chargen::loadDefaultRaceAppearance(actor);
 				chargen::updateActorAppearanceFully(actor, false, true);
 			}
-		}
+		} else if (activeTab == 6) { // Custom morphs
+			auto morphs = chargen::availableShapeBlends(actorNpc);
+			
+			std::vector<float> minMax;
 
+			void (*customConfigTabs)(const char* const* const, uint32_t, int*) = UI->TabBar;
+			int customConfigActiveTab = 1;
+
+			// Parsing for tab headers
+			std::vector<std::string> customConfigTabHeaders;
+
+			for (nlohmann::json config : customConfig) {
+				std::string configName = config.value("Name", "");
+
+				customConfigTabHeaders.push_back(configName.c_str());
+			}
+
+			// Preparing the tabs
+			size_t headersSize = customConfigTabHeaders.size();
+
+			if (headersSize > 0) {
+				const char** configTabHeaders = new const char*[headersSize];
+
+				for (size_t i = 0; i < headersSize; ++i) {
+					configTabHeaders[i] = customConfigTabHeaders[i].c_str();
+				}
+
+				customConfigTabs(configTabHeaders, headersSize, &customConfigActiveTab);
+
+				delete[] configTabHeaders;
+
+				if (customConfigActiveTab <= headersSize) {
+					auto& currentConfig = customConfig[customConfigActiveTab];
+
+					for (int i = 0; i < currentConfig["Layout"].size(); i++) {
+						nlohmann::json& layoutPart = currentConfig["Layout"][i];
+
+						// Text parsing
+						if (layoutPart.value("Type", "") == "Text") {
+							UI->Text(layoutPart.value("Text", "").c_str());
+						}
+
+						// Separator parsing
+						if (layoutPart.value("Type", "") == "Separator") {
+							UI->Separator();
+						}
+
+						// Morph parsing
+						if (layoutPart.value("Type", "") == "Morph" &&
+							(layoutPart["Gender"] == 0 ||
+							layoutPart["Gender"] != 0 && layoutPart["Gender"] == actorNpc->IsFemale() + 1))
+						{
+							nlohmann::json& morph = layoutPart;
+
+							if (morph.contains("Morph") && morph.value("Morph", "") != "") {
+								morphs->insert({ morph.value("Morph", ""), 0.0 });
+								auto shapeBlend = morphs->find(morph.value("Morph", "").c_str());
+
+								if (UI->SliderFloat(
+										morph.value("Name", " ").c_str(),
+										(float*)&shapeBlend->value,
+										0.0f,
+										1.0f,
+										NULL)) {
+									chargen::updateActorAppearance(actor);
+								}
+
+							} else if (morph.contains("MorphMin") &&
+									   morph.contains("MorphMax") &&
+									   morph.value("MorphMin", "") != "" &&
+									   morph.value("MorphMax", "") != "") { 
+
+								morphs->insert({ morph.value("MorphMin", ""), 0.0 });
+								morphs->insert({ morph.value("MorphMax", ""), 0.0 });
+
+								auto shapeBlendMin = morphs->find(morph.value("MorphMin", "").c_str());
+								auto shapeBlendMax = morphs->find(morph.value("MorphMax", "").c_str());
+
+								if (i >= minMax.size()) {
+									minMax.resize(i + 1, 0.0f);
+								}
+
+								minMax[i] = (shapeBlendMin->value > 0.0f) ? -shapeBlendMin->value : shapeBlendMax->value;
+
+								if (UI->SliderFloat(
+										morph.value("Name", " ").c_str(),
+										&minMax[i],
+										-1.0f,
+										1.0f,
+										NULL)) {
+									shapeBlendMax->value = (minMax[i] > 0.0) ? minMax[i] : 0.0;
+									shapeBlendMin->value = (minMax[i] < 0.0) ? abs(minMax[i]) : 0.0;
+
+									chargen::updateActorAppearance(actor);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 		UI->Separator();
 		UI->ShowLogBuffer(LogHandle, true);
 	}

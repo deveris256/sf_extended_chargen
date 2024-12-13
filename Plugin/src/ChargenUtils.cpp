@@ -90,6 +90,7 @@ RE::BSTHashMap<RE::BSFixedStringCS, float>* chargen::availableShapeBlends(RE::TE
 	auto* shapeBlends = npc->shapeBlendData;
 
 	if (shapeBlends != nullptr) {
+
 		return shapeBlends;
 	}
 	return nullptr;

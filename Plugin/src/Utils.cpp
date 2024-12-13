@@ -108,3 +108,33 @@ bool utils::caseInsensitiveCompare(const std::string& str, const char* cstr)
 	}
 	return true;
 }
+
+std::vector<nlohmann::json> utils::getChargenConfig()
+{
+	auto plugin_folder = utils::GetPluginFolder();
+	auto chargen_configs = plugin_folder + "\\Chargen\\";
+
+	std::vector<nlohmann::json> configs;
+
+	if (!std::filesystem::exists(chargen_configs)) {
+		std::filesystem::create_directories(chargen_configs);
+	}
+
+	for (const auto& entry : std::filesystem::directory_iterator(chargen_configs)) {
+		std::ifstream ifs(entry.path());
+		std::string   path = entry.path().string();
+		try {
+			nlohmann::json chargen_data = nlohmann::json::parse(ifs);
+			configs.push_back(chargen_data);
+
+		} catch (nlohmann::json::parse_error& ex) {
+			nlohmann::json dummy_data;
+			dummy_data["Name"] = path.substr(path.find_last_of("/\\") + 1) + " PARSING ERROR";
+
+			configs.push_back(dummy_data);
+		}
+	}
+
+	return configs;
+	//return shapeBlends;
+}
