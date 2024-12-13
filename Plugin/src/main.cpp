@@ -38,10 +38,7 @@ static const struct simple_draw_t* UI = NULL;
 static LogBufferHandle             LogHandle = 0;
 static auto                        lastExecutionTime = std::chrono::steady_clock::now();
 
-static bool appearanceChanged = false;
-
 static std::atomic<bool> hasLoaded = false;
-
 static nlohmann::json customConfig;
 
 void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
@@ -119,6 +116,11 @@ namespace ExtendedChargen
 		TabBarPtr(tabHeaders, tabCount, &activeTab);
 
 		if (activeTab == 0) {  // AVM tab
+			if (actorNpc == nullptr || actor == nullptr) {
+				actor = utils::GetSelActorOrPlayer();
+				actorNpc = actor->GetNPC();
+			}
+
 			uint32_t selEyeColor = 0;
 			auto     eyeColorsAVM = chargen::availableEyeColor();
 
@@ -148,6 +150,11 @@ namespace ExtendedChargen
 			}
 		} else if (activeTab == 1)  // Headparts tab
 		{
+			if (actorNpc == nullptr || actor == nullptr) {
+				actor = utils::GetSelActorOrPlayer();
+				actorNpc = actor->GetNPC();
+			}
+
 			auto Headparts = actorNpc->headParts;
 			auto guard = Headparts.lock();
 
@@ -159,6 +166,11 @@ namespace ExtendedChargen
 			}
 		} else if (activeTab == 2)  // Morphs tab
 		{
+			if (actorNpc == nullptr || actor == nullptr) {
+				actor = utils::GetSelActorOrPlayer();
+				actorNpc = actor->GetNPC();
+			}
+
 			UI->Text("All morphs");
 			// Weight
 			UI->Text("Weight");
@@ -234,9 +246,19 @@ namespace ExtendedChargen
 			}
 		} else if (activeTab == 3)  // Race tab
 		{
+			if (actorNpc == nullptr || actor == nullptr) {
+				actor = utils::GetSelActorOrPlayer();
+				actorNpc = actor->GetNPC();
+			}
+
 			UI->Text(actor->race->GetFullName());
 
 		} else if (activeTab == 4) {  //
+			if (actorNpc == nullptr || actor == nullptr) {
+				actor = utils::GetSelActorOrPlayer();
+				actorNpc = actor->GetNPC();
+			}
+
 			auto facegenMorphs = chargen::getPerformanceMorphs(actor);
 
 			if (facegenMorphs != nullptr) {
@@ -252,6 +274,11 @@ namespace ExtendedChargen
 				}
 			}
 		} else if (activeTab == 5) {
+			if (actorNpc == nullptr || actor == nullptr) {
+				actor = utils::GetSelActorOrPlayer();
+				actorNpc = actor->GetNPC();
+			}
+
 			if (UI->Button("Save preset")) {
 				utils::saveDataJSON(presets::getPresetData(actorNpc));
 			}
@@ -266,9 +293,14 @@ namespace ExtendedChargen
 				chargen::updateActorAppearanceFully(actor, false, true);
 			}
 		} else if (activeTab == 6) { // Custom morphs
-			auto morphs = chargen::availableShapeBlends(actorNpc);
-			
 			std::vector<float> minMax;
+
+			if (actorNpc == nullptr || actor == nullptr) {
+				actor = utils::GetSelActorOrPlayer();
+				actorNpc = actor->GetNPC();
+			}
+
+			auto actorMorphs = chargen::availableShapeBlends(actorNpc);
 
 			void (*customConfigTabs)(const char* const* const, uint32_t, int*) = UI->TabBar;
 			int customConfigActiveTab = 1;
@@ -317,14 +349,17 @@ namespace ExtendedChargen
 							(layoutPart["Gender"] == 0 ||
 							layoutPart["Gender"] != 0 && layoutPart["Gender"] == actorNpc->IsFemale() + 1))
 						{
-							nlohmann::json& morph = layoutPart;
+							if (layoutPart.value("Morph", "") != "") {
+								std::string morphName = layoutPart.value("Morph", "");
 
-							if (morph.contains("Morph") && morph.value("Morph", "") != "") {
-								morphs->insert({ morph.value("Morph", ""), 0.0 });
-								auto shapeBlend = morphs->find(morph.value("Morph", "").c_str());
+								if (!actorMorphs->contains(morphName)) {
+									actorMorphs->insert({ morphName, 0.0 });
+								}
+
+								auto shapeBlend = actorMorphs->find(morphName.c_str());
 
 								if (UI->SliderFloat(
-										morph.value("Name", " ").c_str(),
+										layoutPart.value("Name", " ").c_str(),
 										(float*)&shapeBlend->value,
 										0.0f,
 										1.0f,
@@ -332,16 +367,25 @@ namespace ExtendedChargen
 									chargen::updateActorAppearance(actor);
 								}
 
-							} else if (morph.contains("MorphMin") &&
-									   morph.contains("MorphMax") &&
-									   morph.value("MorphMin", "") != "" &&
-									   morph.value("MorphMax", "") != "") { 
+							} else if (layoutPart.contains("MorphMin") &&
+									   layoutPart.contains("MorphMax") &&
+									   layoutPart.value("MorphMin", "") != "" &&
+									   layoutPart.value("MorphMax", "") != "")
+							{
 
-								morphs->insert({ morph.value("MorphMin", ""), 0.0 });
-								morphs->insert({ morph.value("MorphMax", ""), 0.0 });
+								std::string morphMinName = layoutPart.value("MorphMin", "");
+								std::string morphMaxName = layoutPart.value("MorphMax", "");
 
-								auto shapeBlendMin = morphs->find(morph.value("MorphMin", "").c_str());
-								auto shapeBlendMax = morphs->find(morph.value("MorphMax", "").c_str());
+								if (!actorMorphs->contains(morphMinName)) {
+									actorMorphs->insert({ morphMinName, 0.0 });
+								}
+
+								if (!actorMorphs->contains(morphMaxName)) {
+									actorMorphs->insert({ morphMaxName, 0.0 });
+								}
+
+								auto shapeBlendMin = actorMorphs->find(morphMinName.c_str());
+								auto shapeBlendMax = actorMorphs->find(morphMaxName.c_str());
 
 								if (i >= minMax.size()) {
 									minMax.resize(i + 1, 0.0f);
@@ -350,11 +394,12 @@ namespace ExtendedChargen
 								minMax[i] = (shapeBlendMin->value > 0.0f) ? -shapeBlendMin->value : shapeBlendMax->value;
 
 								if (UI->SliderFloat(
-										morph.value("Name", " ").c_str(),
+										layoutPart.value("Name", " ").c_str(),
 										&minMax[i],
 										-1.0f,
 										1.0f,
-										NULL)) {
+										NULL))
+								{
 									shapeBlendMax->value = (minMax[i] > 0.0) ? minMax[i] : 0.0;
 									shapeBlendMin->value = (minMax[i] < 0.0) ? abs(minMax[i]) : 0.0;
 
