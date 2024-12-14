@@ -12,6 +12,7 @@
         "simpleini",
         "tomlplusplus",
         "xbyak",
-        "tbb"
+        "tbb",
+        "clipboardxx"
     ]
 }

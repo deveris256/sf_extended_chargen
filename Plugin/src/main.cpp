@@ -4,6 +4,7 @@
  */
 
 #define BETTERAPI_IMPLEMENTATION
+#include <clipboardxx.hpp>
 #include "CCF_API.h"
 #include "NiAVObject.h"
 #include "betterapi.h"
@@ -294,6 +295,7 @@ namespace ExtendedChargen
 			}
 		} else if (activeTab == 6) { // Custom morphs
 			std::vector<float> minMax;
+			std::vector<std::string> morphList;
 
 			if (actorNpc == nullptr || actor == nullptr) {
 				actor = utils::GetSelActorOrPlayer();
@@ -351,6 +353,7 @@ namespace ExtendedChargen
 						{
 							if (layoutPart.value("Morph", "") != "") {
 								std::string morphName = layoutPart.value("Morph", "");
+								morphList.push_back(morphName);
 
 								if (!actorMorphs->contains(morphName)) {
 									actorMorphs->insert({ morphName, 0.0 });
@@ -375,6 +378,9 @@ namespace ExtendedChargen
 
 								std::string morphMinName = layoutPart.value("MorphMin", "");
 								std::string morphMaxName = layoutPart.value("MorphMax", "");
+
+								morphList.push_back(morphMinName);
+								morphList.push_back(morphMaxName);
 
 								if (!actorMorphs->contains(morphMinName)) {
 									actorMorphs->insert({ morphMinName, 0.0 });
@@ -408,8 +414,65 @@ namespace ExtendedChargen
 							}
 						}
 					}
+
+					UI->Separator();
+					UI->Text("Quick preset of the current tab morphs");
+
+					std::vector<const char*> quickPresetLabels = std::vector<const char*> {
+						"Copy current sliders to clipboard",
+						"Paste sliders relevant for this category"
+					};
+
+					switch (UI->ButtonBar(
+						quickPresetLabels.data(), quickPresetLabels.size()
+					)) 
+					{
+					case (0): // Copy to clipboard
+						{
+							std::vector<std::pair<std::string, float>> quickMorphListWithValues;
+
+							for (auto& morph : morphList) {
+								if (actorMorphs->contains(morph)) {
+									std::pair morphValuePair = std::pair<std::string, float>(morph, actorMorphs->find(morph)->value);
+									quickMorphListWithValues.push_back(morphValuePair);
+								}
+							}
+
+							std::string quickPresetData = presets::morphListToQuickPreset(quickMorphListWithValues);
+
+							clipboardxx::clipboard clipboard;
+
+							clipboard << quickPresetData;
+						}
+					case (1):
+						{
+							clipboardxx::clipboard clipboard;
+							std::string            pasteText;
+
+							clipboard >> pasteText;
+
+							std::vector<std::pair<std::string, float>> quickMorphs = presets::quickPresetToMorphList(pasteText);
+
+							if (quickMorphs.size() > 0) {
+								for (auto& morphPair : quickMorphs) {
+									if (!actorMorphs->contains(morphPair.first)) {
+										actorMorphs->insert({ morphPair.first, 0.0 });
+									}
+
+									auto actorMorph = actorMorphs->find(morphPair.first.c_str());
+
+									actorMorph->value = morphPair.second;
+								}
+
+								chargen::updateActorAppearance(actor);
+							}
+						}
+							
+					}
 				}
 			}
+			morphList.clear();
+			minMax.clear();
 		}
 		UI->Separator();
 		UI->ShowLogBuffer(LogHandle, true);

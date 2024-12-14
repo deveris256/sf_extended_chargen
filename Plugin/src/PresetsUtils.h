@@ -54,4 +54,9 @@ namespace presets
 
 	// Loads a preset
 	void loadPresetData(RE::Actor* actor);
+
+	// Convert morph list to quick easily copy-able preset
+	std::string morphListToQuickPreset(std::vector<std::pair<std::string, float>> morphList);
+
+	std::vector<std::pair<std::string, float>> quickPresetToMorphList(std::string quickPreset);
 }

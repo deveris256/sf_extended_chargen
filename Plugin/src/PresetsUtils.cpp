@@ -309,3 +309,35 @@ void presets::loadPresetData(RE::Actor* actor) // TODO: Load preset from file na
 
 	jsonFile.close();
 }
+
+std::string presets::morphListToQuickPreset(std::vector<std::pair<std::string, float>> morphList)
+{
+	nlohmann::json quickPreset;
+
+	for (std::pair morph : morphList) {
+		quickPreset[morph.first] = morph.second;
+	}
+
+	return quickPreset.dump(0);
+}
+
+std::vector<std::pair<std::string, float>> presets::quickPresetToMorphList(std::string quickPreset)
+{
+	std::vector<std::pair<std::string, float>> validMorphs;
+
+	nlohmann::json jMorph;
+
+
+	try {
+		jMorph = nlohmann::json::parse(quickPreset);
+	} catch (nlohmann::json::parse_error& e) {
+		return validMorphs;
+	}
+
+	for (auto& morph : jMorph.items()) {
+		validMorphs.push_back({ morph.key(), morph.value() });
+	}
+
+	return validMorphs;
+
+}
