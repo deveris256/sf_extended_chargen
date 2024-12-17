@@ -35,8 +35,8 @@ namespace chargen
 	float* getPerformanceMorphs(RE::Actor* actor);
 
 
-	// Available Eye Colors
-	std::vector<std::string> availableEyeColor();
+	// Available simple group AVM
+	std::vector<std::string> getAVMList(std::string avmName);
 
 	//
 	// Updating data

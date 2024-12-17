@@ -41,13 +41,13 @@ float* chargen::getPerformanceMorphs(RE::Actor* actor)
 	return facegenMorphs;
 }
 
-std::vector<std::string> chargen::availableEyeColor()
+std::vector<std::string> chargen::getAVMList(std::string avmName)
 {
-	auto        eyeColors = RE::TESForm::LookupByEditorID("SimpleGroup_EyeColor");
-	BGSAVMData* eyeColorsAVM = static_cast<BGSAVMData*>(eyeColors);
+	auto        sgAVMName = RE::TESForm::LookupByEditorID(avmName);
+	BGSAVMData* sgAVM = static_cast<BGSAVMData*>(sgAVMName);
 
-	BGSAVMData::Entry* entryBegin = eyeColorsAVM->entryBegin;
-	BGSAVMData::Entry* entryEnd = eyeColorsAVM->entryEnd;
+	BGSAVMData::Entry* entryBegin = sgAVM->entryBegin;
+	BGSAVMData::Entry* entryEnd = sgAVM->entryEnd;
 
 	std::vector<std::string> v;
 

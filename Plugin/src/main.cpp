@@ -93,25 +93,17 @@ namespace ExtendedChargen
 		RE::Actor*  actor = utils::GetSelActorOrPlayer();
 		RE::TESNPC* actorNpc = actor->GetNPC();
 
-		// UI
-		UI->Text(actor->GetDisplayFullName());
-		if (UI->Button("Update appearance fully")) {
-			chargen::updateActorAppearanceFully(actor, false, false);
-		}
-
-		if (UI->Button("Update appearance fully (Race)")) {
-			chargen::updateActorAppearanceFully(actor, false, true);
-		}
-
 		// Settings
 		//UI->DragInt("Minimum slider value", &min, -16, 0);
 		//UI->DragInt("Minimum slider value", &max, 1, 16);
 
+		UI->Text(actor->GetDisplayFullName());
+
 		// Tabs
 		void (*TabBarPtr)(const char* const* const, uint32_t, int*) = UI->TabBar;
-		const char* tabHeaders[] = { "AVM", "Headparts", "Sliders", "Race", "Performance morphs", "Presets (WIP)", "Custom chargen" };
+		const char* tabHeaders[] = { "AVM", "Headparts", "Sliders", "Race", "Performance morphs", "Presets (WIP)", "Custom chargen", "Debug" };
 
-		uint32_t tabCount = 7;
+		uint32_t tabCount = 8;
 		int      activeTab = 1;
 
 		TabBarPtr(tabHeaders, tabCount, &activeTab);
@@ -122,33 +114,43 @@ namespace ExtendedChargen
 				actorNpc = actor->GetNPC();
 			}
 
+			// Eye colors
 			uint32_t selEyeColor = 0;
-			auto     eyeColorsAVM = chargen::availableEyeColor();
+
+			uint32_t selHairColor = 0;
+
+			auto eyeColorsAVM = chargen::getAVMList("SimpleGroup_EyeColor");
+
+			auto hairColorsAVM = chargen::getAVMList("SimpleGroup_Hair_Long_Straight");
 
 			UI->VboxTop(0.4f, 0.0f);
+			UI->HBoxLeft(0.33f, 0.0f);
 
+			UI->Text("Eye color");
 			if (UI->SelectionList(&selEyeColor, &eyeColorsAVM, eyeColorsAVM.size(), selectionListCallback)) {
 				actorNpc->eyeColor = eyeColorsAVM[selEyeColor];
 				chargen::updateActorAppearanceFully(actor, false, false);
 			}
 
-			UI->VBoxBottom();
+			UI->HBoxRight();
+
+			UI->Text("Hair color");
+			if (UI->SelectionList(&selHairColor, &hairColorsAVM, hairColorsAVM.size(), selectionListCallback)) {
+				actorNpc->hairColor = hairColorsAVM[selHairColor];
+				chargen::updateActorAppearanceFully(actor, false, false);
+			}
+
+			UI->HBoxRight();
+
+			UI->HBoxEnd();
+
 			UI->VBoxEnd();
 
-			auto AVMTints = actorNpc->tintAVMData;
-			//std::list<RE::AVMData> avmlist;
+			UI->VboxTop(0.4f, 0.0f);
 
-			for (auto& avmd : AVMTints) {
-				//avmlist.push_front(avmd);
 
-				std::string typeString = chargen::getStringTypeFromAVM(avmd.type).c_str();
+			UI->VBoxEnd();
 
-				UI->Text(avmd.category.c_str());
-				UI->Text(avmd.unk10.name.c_str());
-				UI->Text(avmd.unk10.texturePath.c_str());
-				UI->Text(std::to_string(avmd.unk10.intensity).c_str());
-				UI->Separator();
-			}
 		} else if (activeTab == 1)  // Headparts tab
 		{
 			if (actorNpc == nullptr || actor == nullptr) {
@@ -289,10 +291,6 @@ namespace ExtendedChargen
 				chargen::updateActorAppearanceFully(actor, false, true);
 			}
 
-			if (UI->Button("DEBUG: Load default headparts for this race")) {
-				chargen::loadDefaultRaceAppearance(actor);
-				chargen::updateActorAppearanceFully(actor, false, true);
-			}
 		} else if (activeTab == 6) { // Custom morphs
 			std::vector<float> minMax;
 			std::vector<std::string> morphList;
@@ -473,6 +471,28 @@ namespace ExtendedChargen
 			}
 			morphList.clear();
 			minMax.clear();
+		} else if (activeTab == 7) {
+			if (actorNpc == nullptr || actor == nullptr) {
+				actor = utils::GetSelActorOrPlayer();
+				actorNpc = actor->GetNPC();
+			}
+
+			UI->Text("For debug purposes only.");
+
+			// UI
+			if (UI->Button("Update appearance fully")) {
+				chargen::updateActorAppearanceFully(actor, false, false);
+			}
+
+			if (UI->Button("Update appearance fully (Race)")) {
+				chargen::updateActorAppearanceFully(actor, false, true);
+			}
+
+			if (UI->Button("DEBUG: Load default headparts for this race")) {
+				chargen::loadDefaultRaceAppearance(actor);
+				chargen::updateActorAppearanceFully(actor, false, true);
+			}
+			
 		}
 		UI->Separator();
 		UI->ShowLogBuffer(LogHandle, true);
