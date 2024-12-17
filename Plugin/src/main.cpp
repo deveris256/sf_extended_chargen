@@ -101,9 +101,9 @@ namespace ExtendedChargen
 
 		// Tabs
 		void (*TabBarPtr)(const char* const* const, uint32_t, int*) = UI->TabBar;
-		const char* tabHeaders[] = { "AVM", "Headparts", "Sliders", "Race", "Performance morphs", "Presets (WIP)", "Custom chargen", "Debug" };
+		const char* tabHeaders[] = { "AVM", "Headparts (WIP)", "Sliders", "Race (WIP)", "Presets (WIP)", "Custom chargen", "Debug" };
 
-		uint32_t tabCount = 8;
+		uint32_t tabCount = 7;
 		int      activeTab = 1;
 
 		TabBarPtr(tabHeaders, tabCount, &activeTab);
@@ -153,20 +153,23 @@ namespace ExtendedChargen
 
 		} else if (activeTab == 1)  // Headparts tab
 		{
+			UI->Text("WIP!");
+			/*
 			if (actorNpc == nullptr || actor == nullptr) {
 				actor = utils::GetSelActorOrPlayer();
 				actorNpc = actor->GetNPC();
 			}
-
+			
 			auto Headparts = actorNpc->headParts;
 			auto guard = Headparts.lock();
-
+			
 			for (RE::BGSHeadPart* part : *guard) {
 				UI->Text(part->formEditorID.c_str());
 				UI->Text(part->colorMapping.c_str());
 				UI->Text(part->mask.c_str());
 				UI->Separator();
 			}
+			*/
 		} else if (activeTab == 2)  // Morphs tab
 		{
 			if (actorNpc == nullptr || actor == nullptr) {
@@ -249,34 +252,18 @@ namespace ExtendedChargen
 			}
 		} else if (activeTab == 3)  // Race tab
 		{
+			UI->Text("WIP!");
+			/*
 			if (actorNpc == nullptr || actor == nullptr) {
 				actor = utils::GetSelActorOrPlayer();
 				actorNpc = actor->GetNPC();
 			}
 
 			UI->Text(actor->race->GetFullName());
-
-		} else if (activeTab == 4) {  //
-			if (actorNpc == nullptr || actor == nullptr) {
-				actor = utils::GetSelActorOrPlayer();
-				actorNpc = actor->GetNPC();
-			}
-
-			auto facegenMorphs = chargen::getPerformanceMorphs(actor);
-
-			if (facegenMorphs != nullptr) {
-				for (int i = 0; i < 104; i++) {
-					auto morph = &facegenMorphs[i];
-
-					UI->SliderFloat(
-						std::to_string(i).c_str(),
-						morph,
-						0.0f,
-						1.0f,
-						NULL);
-				}
-			}
-		} else if (activeTab == 5) {
+			*/
+		} else if (activeTab == 4) {
+			UI->Text("WIP!");
+			/*
 			if (actorNpc == nullptr || actor == nullptr) {
 				actor = utils::GetSelActorOrPlayer();
 				actorNpc = actor->GetNPC();
@@ -290,8 +277,9 @@ namespace ExtendedChargen
 				presets::loadPresetData(actor);
 				chargen::updateActorAppearanceFully(actor, false, true);
 			}
+			*/
 
-		} else if (activeTab == 6) { // Custom morphs
+		} else if (activeTab == 5) { // Custom morphs
 			std::vector<float> minMax;
 			std::vector<std::string> morphList;
 
@@ -471,7 +459,7 @@ namespace ExtendedChargen
 			}
 			morphList.clear();
 			minMax.clear();
-		} else if (activeTab == 7) {
+		} else if (activeTab == 6) {
 			if (actorNpc == nullptr || actor == nullptr) {
 				actor = utils::GetSelActorOrPlayer();
 				actorNpc = actor->GetNPC();
@@ -491,6 +479,21 @@ namespace ExtendedChargen
 			if (UI->Button("DEBUG: Load default headparts for this race")) {
 				chargen::loadDefaultRaceAppearance(actor);
 				chargen::updateActorAppearanceFully(actor, false, true);
+			}
+
+			auto facegenMorphs = chargen::getPerformanceMorphs(actor);
+
+			if (facegenMorphs != nullptr) {
+				for (int i = 0; i < 104; i++) {
+					auto morph = &facegenMorphs[i];
+
+					UI->SliderFloat(
+						std::to_string(i).c_str(),
+						morph,
+						0.0f,
+						1.0f,
+						NULL);
+				}
 			}
 			
 		}
