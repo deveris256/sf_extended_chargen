@@ -75,16 +75,20 @@ RE::Actor* utils::GetSelActorOrPlayer()
 // Saving data
 //
 
-void utils::saveDataJSON(nlohmann::json data)
+void utils::saveDataJSON(nlohmann::json data, std::string subfolder, std::string name)
 {
-	std::string_view pluginFolder = utils::GetPluginFolder();
+	std::string pluginFolder = utils::GetPluginFolder();
 	std::string iniFilePath = utils::GetPluginIniFile();
 
-	if (!std::filesystem::exists(pluginFolder)) {
-		std::filesystem::create_directories(pluginFolder);
+	std::string resPath = pluginFolder + "\\" + subfolder;
+
+	if (!std::filesystem::exists(resPath)) {
+		std::filesystem::create_directories(resPath);
 	}
 
-	std::ofstream dataFile(iniFilePath);
+	resPath += "\\" + name;
+
+	std::ofstream dataFile(resPath);
 	auto          prettyData = data.dump(4);
 	dataFile << prettyData;
 
@@ -109,10 +113,10 @@ bool utils::caseInsensitiveCompare(const std::string& str, const char* cstr)
 	return true;
 }
 
-std::vector<nlohmann::json> utils::getChargenConfig()
+std::vector<nlohmann::json> utils::getJsonConfigs(std::string subfolderName)
 {
 	auto plugin_folder = utils::GetPluginFolder();
-	auto chargen_configs = plugin_folder + "\\Chargen\\";
+	auto chargen_configs = plugin_folder + "\\" + subfolderName + "\\";
 
 	std::vector<nlohmann::json> configs;
 
@@ -136,5 +140,4 @@ std::vector<nlohmann::json> utils::getChargenConfig()
 	}
 
 	return configs;
-	//return shapeBlends;
 }

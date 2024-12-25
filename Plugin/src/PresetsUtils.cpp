@@ -271,18 +271,9 @@ void presets::applyDataHeadparts(RE::TESNPC* npc, nlohmann::json headpartsData)
 	}
 }
 
-void presets::loadPresetData(RE::Actor* actor) // TODO: Load preset from file name
+void presets::loadPresetData(RE::Actor* actor, nlohmann::json j)
 {
-	std::ifstream  jsonFile(utils::GetPluginIniFile());
-	nlohmann::json j;
 	RE::TESNPC* npc = actor->GetNPC();
-
-	try {
-		jsonFile >> j;
-	} catch (nlohmann::json::parse_error& e) {
-		jsonFile.close();
-		return;
-	}
 
 	// AVM
 	if (j["AVM"].size() >= 1) {
@@ -306,8 +297,6 @@ void presets::loadPresetData(RE::Actor* actor) // TODO: Load preset from file na
 
 	// Race
 	applyDataRace(npc, j.value("Race", ""));
-
-	jsonFile.close();
 }
 
 std::string presets::morphListToQuickPreset(std::vector<std::pair<std::string, float>> morphList)
@@ -339,5 +328,5 @@ std::vector<std::pair<std::string, float>> presets::quickPresetToMorphList(std::
 	}
 
 	return validMorphs;
-
 }
+

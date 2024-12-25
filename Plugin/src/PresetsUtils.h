@@ -53,7 +53,7 @@ namespace presets
 	void applyDataHeadparts(RE::TESNPC* npc, nlohmann::json headpartsData);
 
 	// Loads a preset
-	void loadPresetData(RE::Actor* actor);
+	void loadPresetData(RE::Actor* actor, nlohmann::json preset);
 
 	// Convert morph list to quick easily copy-able preset
 	std::string morphListToQuickPreset(std::vector<std::pair<std::string, float>> morphList);

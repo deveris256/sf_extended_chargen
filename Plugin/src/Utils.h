@@ -42,7 +42,7 @@ namespace utils
 		return a_actor->boolFlags.underlying() == 4 && a_actor->boolFlags2.underlying() == 8458272;  // From experience
 	}
 
-	void saveDataJSON(nlohmann::json);
+	void saveDataJSON(nlohmann::json, std::string subfolder, std::string name);
 
 	template <class _FORM_T>
 	requires traits::_is_form<_FORM_T>
@@ -65,5 +65,5 @@ namespace utils
 
 	bool caseInsensitiveCompare(const std::string& str, const char* cstr);
 
-	std::vector<nlohmann::json> getChargenConfig();
+	std::vector<nlohmann::json> getJsonConfigs(std::string subfolderName);
 }

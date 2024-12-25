@@ -41,6 +41,7 @@ static auto                        lastExecutionTime = std::chrono::steady_clock
 
 static std::atomic<bool> hasLoaded = false;
 static nlohmann::json customConfig;
+static nlohmann::json customPresets;
 
 void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 {
@@ -50,7 +51,8 @@ void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 	case SFSE::MessagingInterface::kPostDataLoad:
 		{
 			hasLoaded = true;
-			customConfig = utils::getChargenConfig();
+			customConfig = utils::getJsonConfigs("Chargen");
+			customPresets = utils::getJsonConfigs("Presets");
 		}
 		break;
 	case SFSE::MessagingInterface::kPostLoad:
@@ -116,12 +118,11 @@ namespace ExtendedChargen
 
 			// Eye colors
 			uint32_t selEyeColor = 0;
-
 			uint32_t selHairColor = 0;
 
-			auto eyeColorsAVM = chargen::getAVMList("SimpleGroup_EyeColor");
+			std::vector<std::string> eyeColorsAVM = chargen::getAVMList("SimpleGroup_EyeColor");
 
-			auto hairColorsAVM = chargen::getAVMList("SimpleGroup_Hair_Long_Straight");
+			std::vector<std::string> hairColorsAVM = chargen::getAVMList("SimpleGroup_Hair_Long_Straight");
 
 			UI->VboxTop(0.4f, 0.0f);
 			UI->HBoxLeft(0.33f, 0.0f);
@@ -280,8 +281,11 @@ namespace ExtendedChargen
 			*/
 
 		} else if (activeTab == 5) { // Custom morphs
+			customPresets = utils::getJsonConfigs("Presets");
+			customConfig = utils::getJsonConfigs("Chargen");
+
 			std::vector<float> minMax;
-			std::vector<std::string> morphList;
+			std::set<std::string> morphList;
 
 			if (actorNpc == nullptr || actor == nullptr) {
 				actor = utils::GetSelActorOrPlayer();
@@ -318,6 +322,8 @@ namespace ExtendedChargen
 
 				if (customConfigActiveTab <= headersSize) {
 					auto& currentConfig = customConfig[customConfigActiveTab];
+					
+					UI->VboxTop(0.9f, 0.9f);
 
 					for (int i = 0; i < currentConfig["Layout"].size(); i++) {
 						nlohmann::json& layoutPart = currentConfig["Layout"][i];
@@ -339,7 +345,7 @@ namespace ExtendedChargen
 						{
 							if (layoutPart.value("Morph", "") != "") {
 								std::string morphName = layoutPart.value("Morph", "");
-								morphList.push_back(morphName);
+								morphList.emplace(morphName);
 
 								if (!actorMorphs->contains(morphName)) {
 									actorMorphs->insert({ morphName, 0.0 });
@@ -365,8 +371,8 @@ namespace ExtendedChargen
 								std::string morphMinName = layoutPart.value("MorphMin", "");
 								std::string morphMaxName = layoutPart.value("MorphMax", "");
 
-								morphList.push_back(morphMinName);
-								morphList.push_back(morphMaxName);
+								morphList.emplace(morphMinName);
+								morphList.emplace(morphMaxName);
 
 								if (!actorMorphs->contains(morphMinName)) {
 									actorMorphs->insert({ morphMinName, 0.0 });
@@ -401,63 +407,78 @@ namespace ExtendedChargen
 						}
 					}
 
-					UI->Separator();
-					UI->Text("Quick preset of the current tab morphs");
+					std::vector<std::string> presetNames;
+					uint32_t                 selPreset = 0;
 
-					std::vector<const char*> quickPresetLabels = std::vector<const char*> {
-						"Copy current sliders to clipboard",
-						"Paste sliders relevant for this category"
-					};
-
-					switch (UI->ButtonBar(
-						quickPresetLabels.data(), quickPresetLabels.size()
-					)) 
+					for (auto& preset : customPresets)
 					{
-					case (0): // Copy to clipboard
-						{
-							std::vector<std::pair<std::string, float>> quickMorphListWithValues;
+						if (preset.value("Name", "") != "") {
+							presetNames.push_back(preset["Name"]);
+						}
+						else {
+							presetNames.push_back("ERROR");
+						}
+					}
+					UI->Text("\n\n\n");
+					UI->Text(std::to_string(morphList.size()).c_str());
+					UI->Separator();
+					UI->Text("\n\n\nPresets");
+					UI->VBoxEnd();
+					UI->VboxTop(0.1f, 0.1f);
+					// Load preset
+					if (UI->SelectionList(&selPreset, &presetNames, presetNames.size(), selectionListCallback))
+					{
+						if (morphList.size() != 0 && selPreset < morphList.size() && presetNames[selPreset] != "ERROR") {
+							nlohmann::json preset = customPresets[selPreset];
+							nlohmann::json filteredPreset;
 
-							for (auto& morph : morphList) {
-								if (actorMorphs->contains(morph)) {
-									std::pair morphValuePair = std::pair<std::string, float>(morph, actorMorphs->find(morph)->value);
-									quickMorphListWithValues.push_back(morphValuePair);
+							filteredPreset["Name"] = preset["Name"];
+							filteredPreset["Morphs"] = nlohmann::json();
+							filteredPreset["Morphs"]["ShapeBlends"] = nlohmann::json();
+
+							for (const auto& shapeBlend : preset["Morphs"]["ShapeBlends"].items()) {
+								if (morphList.contains(shapeBlend.key())) {
+									filteredPreset["Morphs"]["ShapeBlends"][shapeBlend.key()] = shapeBlend.value();
 								}
 							}
 
-							std::string quickPresetData = presets::morphListToQuickPreset(quickMorphListWithValues);
-
-							clipboardxx::clipboard clipboard;
-
-							clipboard << quickPresetData;
+							presets::loadPresetData(actor, filteredPreset);
+							chargen::updateActorAppearance(actor);
 						}
-					case (1):
-						{
-							clipboardxx::clipboard clipboard;
-							std::string            pasteText;
+					}
+					UI->VBoxEnd();
+					
+					// Save preset
+					char buf = 0;
 
-							clipboard >> pasteText;
+					if (UI->InputText("New preset name", &buf, 255, true)) {
+						std::string bufstr(&buf);
 
-							std::vector<std::pair<std::string, float>> quickMorphs = presets::quickPresetToMorphList(pasteText);
-
-							if (quickMorphs.size() > 0) {
-								for (auto& morphPair : quickMorphs) {
-									if (!actorMorphs->contains(morphPair.first)) {
-										actorMorphs->insert({ morphPair.first, 0.0 });
-									}
-
-									auto actorMorph = actorMorphs->find(morphPair.first.c_str());
-
-									actorMorph->value = morphPair.second;
-								}
-
-								chargen::updateActorAppearance(actor);
-							}
-						}
+						if (buf != '\0' && bufstr != "") {
+							nlohmann::json preset = presets::getPresetData(actorNpc);
+							nlohmann::json filteredPreset;
 							
+							filteredPreset["Name"] = bufstr;
+							filteredPreset["Morphs"] = nlohmann::json();
+							filteredPreset["Morphs"]["ShapeBlends"] = nlohmann::json();
+
+							for (const auto& shapeBlend : preset["Morphs"]["ShapeBlends"].items()) {
+								if (morphList.contains(shapeBlend.key())) {
+									filteredPreset["Morphs"]["ShapeBlends"][shapeBlend.key()] = shapeBlend.value();
+								}
+							}
+
+							utils::saveDataJSON(filteredPreset, "Presets", bufstr + ".json");
+
+							memset(&buf, 0, sizeof(buf));
+							customPresets = utils::getJsonConfigs("Presets");
+						}
+
+						delete &bufstr;
 					}
 				}
 			}
-			morphList.clear();
+
 			minMax.clear();
 		} else if (activeTab == 6) {
 			if (actorNpc == nullptr || actor == nullptr) {
