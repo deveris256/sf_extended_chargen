@@ -67,6 +67,28 @@ void MessageCallback(SFSE::MessagingInterface::Message* a_msg) noexcept
 	}
 }
 
+namespace utils {
+	int SliderAnyInt(const char* label, uint8_t* value, int min, int max)
+	{
+		int temp = static_cast<int>(*value);
+		if (UI->SliderInt(label, &temp, min, max, NULL)) {
+			*value = static_cast<uint8_t>(temp);
+			return 1;
+		}
+		return 0;
+	}
+
+	int SliderAnyInt(const char* label, uint32_t* value, int min, int max)
+	{
+		int temp = static_cast<int>(*value);
+		if (UI->SliderInt(label, &temp, min, max, NULL)) {
+			*value = static_cast<uint32_t>(temp);
+			return 1;
+		}
+		return 0;
+	}
+}
+
 namespace ExtendedChargen
 {
 	const char* selectionListCallback(const void* userdata, uint32_t index, char* out_buffer, uint32_t out_buffer_size)
@@ -124,33 +146,56 @@ namespace ExtendedChargen
 
 			std::vector<std::string> hairColorsAVM = chargen::getAVMList("SimpleGroup_Hair_Long_Straight");
 
-			UI->VboxTop(0.4f, 0.0f);
-			UI->HBoxLeft(0.33f, 0.0f);
-
+			UI->VboxTop(0.2f, 0.2f);
 			UI->Text("Eye color");
 			if (UI->SelectionList(&selEyeColor, &eyeColorsAVM, eyeColorsAVM.size(), selectionListCallback)) {
 				actorNpc->eyeColor = eyeColorsAVM[selEyeColor];
 				chargen::updateActorAppearanceFully(actor, false, false);
 			}
-
-			UI->HBoxRight();
-
 			UI->Text("Hair color");
 			if (UI->SelectionList(&selHairColor, &hairColorsAVM, hairColorsAVM.size(), selectionListCallback)) {
 				actorNpc->hairColor = hairColorsAVM[selHairColor];
 				chargen::updateActorAppearanceFully(actor, false, false);
 			}
-
-			UI->HBoxRight();
-
-			UI->HBoxEnd();
-
 			UI->VBoxEnd();
 
-			UI->VboxTop(0.4f, 0.0f);
+			for (int a = 0; a < actorNpc->tintAVMData.size(); a++) {
+				auto& avmd = actorNpc->tintAVMData[a];
+				if (utils::SliderAnyInt(
+						("R | " + std::string(avmd.category.c_str())).c_str(),
+						&avmd.unk10.color.red,
+						0, 255)) {
+					chargen::updateActorAppearanceFully(actor, false, false);
+				}
 
+				if (utils::SliderAnyInt(
+						("G | " + std::string(avmd.category.c_str())).c_str(),
+						&avmd.unk10.color.green,
+						0, 255)) {
+					chargen::updateActorAppearanceFully(actor, false, false);
+				}
 
-			UI->VBoxEnd();
+				if (utils::SliderAnyInt(
+						("B | " + std::string(avmd.category.c_str())).c_str(),
+						&avmd.unk10.color.blue,
+						0, 255)) {
+					chargen::updateActorAppearanceFully(actor, false, false);
+				}
+
+				if (utils::SliderAnyInt(
+						("A | " + std::string(avmd.category.c_str())).c_str(),
+						&avmd.unk10.color.alpha,
+						0, 255)) {
+					chargen::updateActorAppearanceFully(actor, false, false);
+				}
+
+				if (utils::SliderAnyInt(
+						("I | " + std::string(avmd.category.c_str())).c_str(),
+						&avmd.unk10.intensity,
+						0, 255)) {
+					chargen::updateActorAppearanceFully(actor, false, false);
+				}
+			}
 
 		} else if (activeTab == 1)  // Headparts tab
 		{
