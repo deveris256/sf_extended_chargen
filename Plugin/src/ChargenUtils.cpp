@@ -134,22 +134,27 @@ std::string chargen::getStringTypeFromAVM(RE::AVMData::Type type)
 
 void chargen::updateActorAppearance(RE::Actor* actor)
 {
-	SFSE::GetTaskInterface()->AddTask(
-		[actor]() {
-			actor->UpdateChargenAppearance();
-		});
+	static std::atomic<bool> updateQueued = false;
+	if (updateQueued.load())
+		return;
+
+	updateQueued = true;
+	SFSE::GetTaskInterface()->AddTask([actorSmartPtr = RE::NiPointer<RE::Actor>(actor)] {
+		actorSmartPtr->UpdateChargenAppearance();
+		updateQueued = false;
+	});
 }
 
 void chargen::updateActorAppearanceFully(RE::Actor* actor, bool updateBody, bool raceChange)
 {
-	SFSE::GetTaskInterface()->AddTask(
-		[actor, updateBody, raceChange]() {
-			actor->UpdateAppearance(updateBody, 0u, raceChange);
-		});
+	static std::atomic<bool> updateQueued = false;
+	if (updateQueued.load())
+		return;
 
 	SFSE::GetTaskInterface()->AddTask(
-		[actor]() {
-			actor->UpdateChargenAppearance();
+		[actorSmartPtr = RE::NiPointer<RE::Actor>(actor), updateBody, raceChange]() {
+			actorSmartPtr->UpdateAppearance(updateBody, 0u, raceChange);
+			updateQueued = false;
 		});
 }
 
