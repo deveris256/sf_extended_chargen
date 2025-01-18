@@ -11,7 +11,7 @@
 #include "PresetsUtils.h"
 #include "Utils.h"
 #include "ChargenUtils.h"
-
+#include "UIUtils.h"
 
 #include "LogWrapper.h"
 #include "SFEventHandler.h"
@@ -91,19 +91,6 @@ namespace utils {
 
 namespace ExtendedChargen
 {
-	const char* selectionListCallback(const void* userdata, uint32_t index, char* out_buffer, uint32_t out_buffer_size)
-	{
-		const auto* items = static_cast<const std::vector<std::string>*>(userdata);
-
-		if (index >= items->size()) {
-			return nullptr;
-		}
-
-		snprintf(out_buffer, out_buffer_size, "%s", (*items)[index].c_str());
-
-		return out_buffer;
-	}
-
 	static void ECDrawCallback(void* imgui_context)
 	{
 		if (hasLoaded == false) {
@@ -148,12 +135,12 @@ namespace ExtendedChargen
 
 			UI->VboxTop(0.2f, 0.2f);
 			UI->Text("Eye color");
-			if (UI->SelectionList(&selEyeColor, &eyeColorsAVM, eyeColorsAVM.size(), selectionListCallback)) {
+			if (UI->SelectionList(&selEyeColor, &eyeColorsAVM, eyeColorsAVM.size(), GUI::selectionListCallback)) {
 				actorNpc->eyeColor = eyeColorsAVM[selEyeColor];
 				chargen::updateActorAppearanceFully(actor, false, false);
 			}
 			UI->Text("Hair color");
-			if (UI->SelectionList(&selHairColor, &hairColorsAVM, hairColorsAVM.size(), selectionListCallback)) {
+			if (UI->SelectionList(&selHairColor, &hairColorsAVM, hairColorsAVM.size(), GUI::selectionListCallback)) {
 				actorNpc->hairColor = hairColorsAVM[selHairColor];
 				chargen::updateActorAppearanceFully(actor, false, false);
 			}
@@ -384,6 +371,8 @@ namespace ExtendedChargen
 						}
 
 						// Morph parsing
+						// 
+						// Regular morph slider parsing
 						if (layoutPart.value("Type", "") == "Morph" &&
 							(layoutPart["Gender"] == 0 ||
 							layoutPart["Gender"] != 0 && layoutPart["Gender"] == actorNpc->IsFemale() + 1))
@@ -407,10 +396,11 @@ namespace ExtendedChargen
 									chargen::updateActorAppearance(actor);
 								}
 
-							} else if (layoutPart.contains("MorphMin") &&
-									   layoutPart.contains("MorphMax") &&
-									   layoutPart.value("MorphMin", "") != "" &&
-									   layoutPart.value("MorphMax", "") != "")
+							} //Min-max morph slider parsing
+							else if (layoutPart.contains("MorphMin") &&
+									 layoutPart.contains("MorphMax") &&
+									 layoutPart.value("MorphMin", "") != "" &&
+									 layoutPart.value("MorphMax", "") != "")
 							{
 
 								std::string morphMinName = layoutPart.value("MorphMin", "");
@@ -464,14 +454,14 @@ namespace ExtendedChargen
 							presetNames.push_back("ERROR");
 						}
 					}
+
 					UI->Text("\n\n\n");
-					UI->Text(std::to_string(morphList.size()).c_str());
 					UI->Separator();
 					UI->Text("\n\n\nPresets");
 					UI->VBoxEnd();
 					UI->VboxTop(0.1f, 0.1f);
 					// Load preset
-					if (UI->SelectionList(&selPreset, &presetNames, presetNames.size(), selectionListCallback))
+					if (UI->SelectionList(&selPreset, &presetNames, presetNames.size(), GUI::selectionListCallback))
 					{
 						if (morphList.size() != 0 && selPreset < morphList.size() && presetNames[selPreset] != "ERROR") {
 							nlohmann::json preset = customPresets[selPreset];
@@ -487,7 +477,7 @@ namespace ExtendedChargen
 								}
 							}
 
-							presets::loadPresetData(actor, filteredPreset);
+							presets::loadPresetData(actor, filteredPreset, true);
 							chargen::updateActorAppearance(actor);
 						}
 					}

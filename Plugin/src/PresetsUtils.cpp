@@ -1,7 +1,4 @@
 #include "PresetsUtils.h"
-#include <nlohmann/json.hpp>
-#include "ChargenUtils.h"
-#include "Utils.h"
 
 //
 // Getting data from NPC
@@ -149,48 +146,103 @@ nlohmann::json presets::getPresetData(RE::TESNPC* npc)
 // Preset data loaders
 //
 
-void presets::applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata)
+void presets::applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata, bool additive)
 {
 	nlohmann::json j_morphRegions = morphdata["MorphRegions"];
 	nlohmann::json j_faceBones = morphdata["FaceBones"];
 	nlohmann::json j_shapeBlends = morphdata["ShapeBlends"];
 
+	// Face morph regions
 	RE::BSTHashMap<RE::BSFixedStringCS, float>* npcMorphDefinitions = chargen::availableMorphDefinitions(npc);
+	
+	std::set<std::string> morphDefinitionNames;
 
 	if (npcMorphDefinitions != nullptr) {
-		npcMorphDefinitions->clear();
+		if (!additive)
+		{
+			npcMorphDefinitions->clear();
+		}
 
 		for (const auto& md : j_morphRegions.items()) {
-			npcMorphDefinitions->insert(std::make_pair(RE::BSFixedStringCS(md.key()), static_cast<float>(md.value())));
+			if (npcMorphDefinitions->contains(md.key())) {
+				npcMorphDefinitions->find(md.key()).operator->()->value = static_cast<float>(md.value());
+			} else {
+				npcMorphDefinitions->insert(std::make_pair(RE::BSFixedStringCS(md.key()), static_cast<float>(md.value())));
+			}
 		}
 	}
 
+	// Facebones
 	auto faceBones = chargen::availableFacebones(npc);
 
 	if (faceBones != nullptr) {
-		faceBones->clear();
+		if (!additive)
+		{
+			faceBones->clear();
+		}
 
 		for (const auto& fb : j_faceBones.items()) {
-			faceBones->insert(std::make_pair(static_cast<uint32_t>(std::stoul(fb.key())), (float)fb.value()));
+			if (faceBones->contains(std::stoul(fb.key())))
+			{
+				faceBones->find(std::stoul(fb.key()))->value = std::stoul(fb.key());
+			}
+			else {
+				faceBones->insert(std::make_pair(static_cast<uint32_t>(std::stoul(fb.key())), (float)fb.value()));
+			}
+			
 		}
 	}
 	
+	// Shape-Blends
 	auto shapeBlends = chargen::availableShapeBlends(npc);
 
 	if (shapeBlends != nullptr) {
-		shapeBlends->clear();
+		if (!additive)
+		{
+			shapeBlends->clear();
+		}
 
 		for (const auto& sb : j_shapeBlends.items()) {
-			shapeBlends->insert(std::make_pair(RE::BSFixedStringCS(sb.key()), (float)sb.value()));
+			if (shapeBlends->contains(sb.key()))
+			{
+				shapeBlends->find(sb.key())->value = (float)sb.value();
+			}
+			else {
+				shapeBlends->insert(std::make_pair(RE::BSFixedStringCS(sb.key()), (float)sb.value()));
+			}
 		}
 	}
 }
 
-void presets::applyDataAVM(RE::TESNPC* npc, nlohmann::json avmdata) {
-	npc->tintAVMData.clear();
+void presets::applyDataAVM(RE::TESNPC* npc, nlohmann::json avmdata, bool additive) {
+	
+	std::vector<std::string> avmCategoryList;
 
-	for (auto& avmItem : avmdata) {
+	if (!additive)
+	{
+		npc->tintAVMData.clear();
+	}
+
+	for (int i = 0; i < npc->tintAVMData.size(); i++)
+	{
+		auto& avm = npc->tintAVMData[i];
+
+		avmCategoryList.emplace_back(std::string(avm.category.c_str()), i);
+	}
+	
+	for (auto& avmItem : avmdata)
+	{
 		RE::AVMData avm;
+
+		for (int avmIndex = 0; avmIndex < avmCategoryList.size(); avmIndex++)
+		{
+			std::string avmCategoryName = avmCategoryList[avmIndex];
+			if (avmCategoryName == avmItem.value("Category", ""))
+			{
+				avm = npc->tintAVMData[avmIndex];
+				break;
+			}
+		}
 
 		avm.type = chargen::getAVMTypeFromString(avmItem.value("Type", "kNone"));
 
@@ -250,18 +302,34 @@ void presets::applyDataColors(RE::TESNPC* npc, nlohmann::json colorData)
 	npc->hairColor = colorData.value("HairColor", "");
 }
 
-void presets::applyDataHeadparts(RE::TESNPC* npc, nlohmann::json headpartsData)
+void presets::applyDataHeadparts(RE::TESNPC* npc, nlohmann::json headpartsData, bool additive)
 {
 	RE::BSGuarded<RE::BSTArray<RE::BGSHeadPart*>, RE::BSNonReentrantSpinLock>* headparts = &npc->headParts;
 
+	std::set<std::string> headpartEditorIDs;
+
 	auto guard = headparts->lock();
 
-	guard.operator->().clear();
+	if (!additive)
+	{
+		guard.operator->().clear();
+	}
+	else {
+		
+		for (auto& headpart : guard.operator->())
+		{
+			headpartEditorIDs.emplace(headpart->formEditorID);
+		}
+	}
 
 	for (auto& hpItem : headpartsData) {
 		auto headpartVal = hpItem.value("EditorID", "");
 
 		if (headpartVal != "") {
+			if (headpartEditorIDs.contains(headpartVal))
+			{
+				continue;
+			}
 			auto headpart = RE::TESForm::LookupByEditorID(headpartVal);
 
 			if (headpart != nullptr && headpart->formType == RE::FormType::kHDPT) {
@@ -271,13 +339,13 @@ void presets::applyDataHeadparts(RE::TESNPC* npc, nlohmann::json headpartsData)
 	}
 }
 
-void presets::loadPresetData(RE::Actor* actor, nlohmann::json j)
+void presets::loadPresetData(RE::Actor* actor, nlohmann::json j, bool additive)
 {
 	RE::TESNPC* npc = actor->GetNPC();
 
 	// AVM
 	if (j["AVM"].size() >= 1) {
-		applyDataAVM(npc, j["AVM"]);
+		applyDataAVM(npc, j["AVM"], additive);
 	}
 
 	// Colors
@@ -287,12 +355,12 @@ void presets::loadPresetData(RE::Actor* actor, nlohmann::json j)
 	
 	// Headparts
 	if (j["Headparts"].size() >= 1) {
-		applyDataHeadparts(npc, j["Headparts"]);
+		applyDataHeadparts(npc, j["Headparts"], additive);
 	}
 
 	// Morphs
 	if (j["Morphs"].size() >= 1) {
-		applyDataMorphs(npc, j["Morphs"]);
+		applyDataMorphs(npc, j["Morphs"], additive);
 	}
 
 	// Race

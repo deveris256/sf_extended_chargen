@@ -3,7 +3,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
+#include <boost/multi_index_container.hpp>
 #include <nlohmann/json.hpp>
+#include "ChargenUtils.h"
+#include "Utils.h"
 
 namespace presets
 {
@@ -34,10 +38,10 @@ namespace presets
 	//
 
 	// Applies morph data to an actor
-	void applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata);
+	void applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata, bool additive);
 
 	// Applies AVM data to actor
-	void applyDataAVM(RE::TESNPC* npc, nlohmann::json avmdata);
+	void applyDataAVM(RE::TESNPC* npc, nlohmann::json avmdata, bool additive);
 
 	// Applies race data to an actor
 	void applyDataRace(RE::TESNPC* npc, std::string raceStr);
@@ -50,10 +54,10 @@ namespace presets
 	void applyDataColors(RE::TESNPC* npc, nlohmann::json colorData);
 
 	// Applies headparts data to an actor
-	void applyDataHeadparts(RE::TESNPC* npc, nlohmann::json headpartsData);
+	void applyDataHeadparts(RE::TESNPC* npc, nlohmann::json headpartsData, bool additive);
 
 	// Loads a preset
-	void loadPresetData(RE::Actor* actor, nlohmann::json preset);
+	void loadPresetData(RE::Actor* actor, nlohmann::json preset, bool additive);
 
 	// Convert morph list to quick easily copy-able preset
 	std::string morphListToQuickPreset(std::vector<std::pair<std::string, float>> morphList);

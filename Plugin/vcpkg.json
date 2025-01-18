@@ -13,6 +13,7 @@
         "tomlplusplus",
         "xbyak",
         "tbb",
-        "clipboardxx"
+        "clipboardxx",
+        "boost-multi-index"
     ]
 }
