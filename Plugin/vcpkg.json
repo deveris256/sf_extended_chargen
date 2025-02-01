@@ -4,7 +4,6 @@
     "version-string": "0.0.1",
     "description": "Extended Chargen",
     "homepage": "https://github.com/deveris256/sf_extended_chargen",
-    "builtin-baseline": "f523208df4ae467436dc2d2eeab594fed240d552",
     "dependencies": [
         "detours",
         "spdlog",

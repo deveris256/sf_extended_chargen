@@ -508,8 +508,6 @@ namespace ExtendedChargen
 							memset(&buf, 0, sizeof(buf));
 							customPresets = utils::getJsonConfigs("Presets");
 						}
-
-						delete &bufstr;
 					}
 				}
 			}
