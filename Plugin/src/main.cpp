@@ -354,8 +354,16 @@ namespace ExtendedChargen
 
 				if (customConfigActiveTab <= headersSize) {
 					auto& currentConfig = customConfig[customConfigActiveTab];
+					bool  saveWeights = currentConfig.value("SaveWeightsWithPreset", false);
 					
 					UI->VboxTop(0.9f, 0.9f);
+
+					// Hidden morphs parser: Hidden morphs are not sliders but appear/applied in the preset when saved
+					if (currentConfig.contains("HiddenMorphs") && currentConfig["HiddenMorphs"].is_array()) {
+						for (int i = 0; i < currentConfig["HiddenMorphs"].size(); i++) {
+							morphList.emplace(currentConfig["HiddenMorphs"][i]);
+						}
+					}
 
 					for (int i = 0; i < currentConfig["Layout"].size(); i++) {
 						nlohmann::json& layoutPart = currentConfig["Layout"][i];
@@ -477,6 +485,11 @@ namespace ExtendedChargen
 								}
 							}
 
+							if (preset["Morphs"].contains("Weights"))
+							{
+								filteredPreset["Morphs"]["Weights"] = preset["Morphs"]["Weights"];
+							}
+
 							presets::loadPresetData(actor, filteredPreset, true);
 							chargen::updateActorAppearance(actor);
 						}
@@ -501,6 +514,11 @@ namespace ExtendedChargen
 								if (morphList.contains(shapeBlend.key())) {
 									filteredPreset["Morphs"]["ShapeBlends"][shapeBlend.key()] = shapeBlend.value();
 								}
+							}
+
+							if (saveWeights)
+							{
+								filteredPreset["Morphs"]["Weights"] = preset["Morphs"]["Weights"];
 							}
 
 							utils::saveDataJSON(filteredPreset, "Presets", bufstr + ".json");

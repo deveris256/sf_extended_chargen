@@ -42,9 +42,16 @@ nlohmann::json presets::getJsonMorphsData(RE::TESNPC* npc)
 		}
 	}
 
+	// Weight
+	nlohmann::json j_wght;
+	j_wght["Overweight"] = npc->morphWeight.fat;
+	j_wght["Thin"] = npc->morphWeight.thin;
+	j_wght["Strong"] = npc->morphWeight.muscular;
+
 	j["MorphRegions"] = j_defs;
 	j["FaceBones"] = j_fb;
 	j["ShapeBlends"] = j_sb;
+	j["Weights"] = j_wght;
 
 	return j;
 }
@@ -148,16 +155,13 @@ nlohmann::json presets::getPresetData(RE::TESNPC* npc)
 
 void presets::applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata, bool additive)
 {
-	nlohmann::json j_morphRegions = morphdata["MorphRegions"];
-	nlohmann::json j_faceBones = morphdata["FaceBones"];
-	nlohmann::json j_shapeBlends = morphdata["ShapeBlends"];
-
 	// Face morph regions
 	RE::BSTHashMap<RE::BSFixedStringCS, float>* npcMorphDefinitions = chargen::availableMorphDefinitions(npc);
 	
 	std::set<std::string> morphDefinitionNames;
 
-	if (npcMorphDefinitions != nullptr) {
+	if (npcMorphDefinitions != nullptr && morphdata.contains("MorphRegions")) {
+		nlohmann::json j_morphRegions = morphdata["MorphRegions"];
 		if (!additive)
 		{
 			npcMorphDefinitions->clear();
@@ -175,7 +179,8 @@ void presets::applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata, bool ad
 	// Facebones
 	auto faceBones = chargen::availableFacebones(npc);
 
-	if (faceBones != nullptr) {
+	if (faceBones != nullptr && morphdata.contains("FaceBones")) {
+		nlohmann::json j_faceBones = morphdata["FaceBones"];
 		if (!additive)
 		{
 			faceBones->clear();
@@ -196,7 +201,9 @@ void presets::applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata, bool ad
 	// Shape-Blends
 	auto shapeBlends = chargen::availableShapeBlends(npc);
 
-	if (shapeBlends != nullptr) {
+	if (shapeBlends != nullptr && morphdata.contains("ShapeBlends")) {
+		nlohmann::json j_shapeBlends = morphdata["ShapeBlends"];
+
 		if (!additive)
 		{
 			shapeBlends->clear();
@@ -211,6 +218,14 @@ void presets::applyDataMorphs(RE::TESNPC* npc, nlohmann::json morphdata, bool ad
 				shapeBlends->insert(std::make_pair(RE::BSFixedStringCS(sb.key()), (float)sb.value()));
 			}
 		}
+	}
+
+	// Weights
+	if (morphdata.contains("Weights")) {
+		nlohmann::json j_weight = morphdata["Weights"];
+		npc->morphWeight.fat = j_weight["Overweight"];
+		npc->morphWeight.thin = j_weight["Thin"];
+		npc->morphWeight.muscular = j_weight["Strong"];
 	}
 }
 
